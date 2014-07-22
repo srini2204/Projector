@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Projector.Data
 {
@@ -10,6 +6,6 @@ namespace Projector.Data
     {
         List<object> Columns { get; }
 
-        IField GetField(long id, string name);
+        IField<T> GetField<T>(int id, string name);
     }
 }

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Projector.Data
 {
     public class Schema : ISchema
     {
-        private Dictionary<string, List<object>> _data;
+        private readonly Dictionary<string, List<object>> _data;
 
         public Schema(Dictionary<string, List<object>> data)
         {
@@ -20,9 +17,15 @@ namespace Projector.Data
         }
 
 
-        public IField GetField(long id, string name)
+        public IField<T> GetField<T>(int id, string name)
         {
-            return null;
+            List<object> column;
+            if (_data.TryGetValue(name, out column))
+            {
+                return new Field<T>(column, id);
+
+            }
+            throw new InvalidOperationException("Can't find column name: '" + name + "'");
         }
     }
 }

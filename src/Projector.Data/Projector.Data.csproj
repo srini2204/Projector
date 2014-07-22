@@ -40,6 +40,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Field.cs" />
+    <Compile Include="Filters\Filter.cs" />
+    <Compile Include="Filters\IFilterCriteria.cs" />
     <Compile Include="IDataConsumer.cs" />
     <Compile Include="IDataProvider.cs" />
     <Compile Include="IField.cs" />

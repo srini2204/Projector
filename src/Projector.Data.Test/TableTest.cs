@@ -1,10 +1,6 @@
 ﻿using Moq;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Projector.Data.Test.Helpers;
 
 namespace Projector.Data.Test
 {
@@ -12,11 +8,6 @@ namespace Projector.Data.Test
     public class TableTest
     {
         private Mock<IDataConsumer> _dataConsumer;
-        private class Client
-        {
-            public long Id { get; set; }
-            public string Name { get; set; }
-        }
 
         [SetUp]
         public void InitContext()

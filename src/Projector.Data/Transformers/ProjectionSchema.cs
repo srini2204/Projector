@@ -18,8 +18,7 @@ namespace Projector.Data.Transformers
             get { throw new NotImplementedException(); }
         }
 
-
-        public IField GetField(long id, string name)
+        public IField<T> GetField<T>(int id, string name)
         {
             throw new NotImplementedException();
         }

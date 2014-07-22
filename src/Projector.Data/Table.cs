@@ -1,32 +1,28 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Projector.Data
 {
     public class Table<TRow> : IDataProvider
     {
-        private Dictionary<string, List<object>> _data = new Dictionary<string, List<object>>();
-        private Dictionary<string, long> _keyToIdIndex = new Dictionary<string, long>();
+        private readonly Dictionary<string, List<object>> _data = new Dictionary<string, List<object>>();
+        private readonly Dictionary<string, long> _keyToIdIndex = new Dictionary<string, long>();
 
         private readonly Func<TRow, string> _keySelector;
 
-        private PropertyInfo[] _rowProperties;
+        private readonly PropertyInfo[] _rowProperties;
 
 
         private IDataConsumer _consumer;
 
-        private long[] _addIds = new long[1024];
+        private readonly long[] _addIds = new long[1024];
         private long _addIndex;
 
-        private long[] _deleteIds = new long[1024];
+        private readonly long[] _deleteIds = new long[1024];
         private long _deleteIndex;
 
-        private ISchema _schema;
+        private readonly ISchema _schema;
 
         public Table()
         {
@@ -72,7 +68,7 @@ namespace Projector.Data
 
         public long Add(TRow item)
         {
-            long id = -1;
+            long id;
             var key = _keySelector(item);
             if (!_keyToIdIndex.TryGetValue(key, out id))
             {
@@ -93,7 +89,7 @@ namespace Projector.Data
         public void Update(TRow item) { }
         public void Delete(TRow item)
         {
-            long id = -1;
+            long id;
             var key = _keySelector(item);
             if (_keyToIdIndex.TryGetValue(key, out id))
             {
@@ -114,8 +110,9 @@ namespace Projector.Data
                 _consumer.OnSyncPoint();
             }
 
-            
+
             _addIndex = 0;
+            _deleteIndex = 0;
         }
 
     }
