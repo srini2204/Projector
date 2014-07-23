@@ -87,7 +87,19 @@ namespace Projector.Data.Filters
 
         private void CatchUp()
         {
+            _consumer.OnSchema(_schema);
+            //foreach (var id in _keyToIdIndex.Values)
+            //{
+            //    _addIds[_addIndex] = id;
+            //    _addIndex++;
+            //}
 
+            //if (_addIndex > 0)
+            //{
+            //    _consumer.OnAdd(_addIds, _addIndex);
+            //}
+            _consumer.OnSyncPoint();
+            _addIndex = 0;
         }
     }
 }
