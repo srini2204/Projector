@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 
@@ -15,15 +14,15 @@ namespace Projector.IO.Server
         //This buffer is a byte array which the Windows TCP buffer can copy its data to.
 
         // the total number of bytes controlled by the buffer pool
-        Int32 totalBytesInBufferBlock;
+        int totalBytesInBufferBlock;
 
         // Byte array maintained by the Buffer Manager.
         byte[] bufferBlock;
         Stack<int> freeIndexPool;
-        Int32 currentIndex;
-        Int32 bufferBytesAllocatedForEachSaea;
+        int currentIndex;
+        int bufferBytesAllocatedForEachSaea;
 
-        public BufferManager(Int32 totalBytes, Int32 totalBufferBytesInEachSaeaObject)
+        public BufferManager(int totalBytes, int totalBufferBytesInEachSaeaObject)
         {
             totalBytesInBufferBlock = totalBytes;
             this.currentIndex = 0;

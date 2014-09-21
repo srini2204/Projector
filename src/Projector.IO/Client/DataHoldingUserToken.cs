@@ -6,24 +6,24 @@ namespace Projector.IO.Client
     {
         internal DataHolder theDataHolder;
 
-        private Int32 idOfThisObject; //for testing only
+        private int idOfThisObject; //for testing only
 
-        internal readonly Int32 sendPrefixLength;
-        internal readonly Int32 receivePrefixLength;
-        internal Int32 receivedPrefixBytesDoneCount = 0;
-        internal Int32 receivedMessageBytesDoneCount = 0;
+        internal readonly int sendPrefixLength;
+        internal readonly int receivePrefixLength;
+        internal int receivedPrefixBytesDoneCount = 0;
+        internal int receivedMessageBytesDoneCount = 0;
         internal Byte[] byteArrayForPrefix;
-        internal Int32 receiveMessageOffset;
-        internal Int32 recPrefixBytesDoneThisOp = 0;
-        internal Int32 lengthOfCurrentIncomingMessage;
-        internal readonly Int32 bufferOffsetReceive;
-        internal readonly Int32 permanentReceiveMessageOffset;
-        internal readonly Int32 bufferOffsetSend;
+        internal int receiveMessageOffset;
+        internal int recPrefixBytesDoneThisOp = 0;
+        internal int lengthOfCurrentIncomingMessage;
+        internal readonly int bufferOffsetReceive;
+        internal readonly int permanentReceiveMessageOffset;
+        internal readonly int bufferOffsetSend;
         internal Byte[] dataToSend;
-        internal Int32 sendBytesRemaining;
-        internal Int32 bytesSentAlready;
+        internal int sendBytesRemaining;
+        internal int bytesSentAlready;
 
-        public DataHoldingUserToken(Int32 rOffset, Int32 sOffset, Int32 receivePrefixLength, Int32 sendPrefixLength, Int32 identifier)
+        public DataHoldingUserToken(int rOffset, int sOffset, int receivePrefixLength, int sendPrefixLength, int identifier)
         {
             this.idOfThisObject = identifier;
             this.bufferOffsetReceive = rOffset;
@@ -34,7 +34,7 @@ namespace Projector.IO.Client
             this.permanentReceiveMessageOffset = this.receiveMessageOffset;
         }
 
-        public Int32 TokenId
+        public int TokenId
         {
             get
             {

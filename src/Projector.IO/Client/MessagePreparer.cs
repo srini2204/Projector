@@ -18,7 +18,7 @@ namespace Projector.IO.Client
             // 2) the message.
 
             //Determine the length of the message that we will send.
-            Int32 lengthOfCurrentOutgoingMessage = dataHolder.arrayOfMessagesToSend[dataHolder.NumberOfMessagesSent].Length;
+            int lengthOfCurrentOutgoingMessage = dataHolder.arrayOfMessagesToSend[dataHolder.NumberOfMessagesSent].Length;
 
             //convert the message to byte array
             Byte[] arrayOfBytesInMessage = Encoding.ASCII.GetBytes(dataHolder.arrayOfMessagesToSend[dataHolder.NumberOfMessagesSent]);

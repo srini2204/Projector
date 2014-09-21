@@ -6,7 +6,7 @@ namespace Projector.IO.Client
     class MessageHandler
     {
 
-        public bool HandleMessage(SocketAsyncEventArgs receiveSendEventArgs, DataHoldingUserToken receiveSendToken, Int32 remainingBytesToProcess)
+        public bool HandleMessage(SocketAsyncEventArgs receiveSendEventArgs, DataHoldingUserToken receiveSendToken, int remainingBytesToProcess)
         {
             bool incomingTcpMessageIsReady = false;
 

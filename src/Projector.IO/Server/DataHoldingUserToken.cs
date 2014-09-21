@@ -9,35 +9,35 @@ namespace Projector.IO.Server
         internal Mediator theMediator;
         internal DataHolder theDataHolder;
 
-        internal Int32 socketHandleNumber;
+        internal int socketHandleNumber;
 
-        internal readonly Int32 bufferOffsetReceive;
-        internal readonly Int32 permanentReceiveMessageOffset;
-        internal readonly Int32 bufferOffsetSend;
+        internal readonly int bufferOffsetReceive;
+        internal readonly int permanentReceiveMessageOffset;
+        internal readonly int bufferOffsetSend;
 
-        private Int32 idOfThisObject; //for testing only        
+        private int idOfThisObject; //for testing only        
 
-        internal Int32 lengthOfCurrentIncomingMessage;
+        internal int lengthOfCurrentIncomingMessage;
 
         //receiveMessageOffset is used to mark the byte position where the message
         //begins in the receive buffer. This value can sometimes be out of
         //bounds for the data stream just received. But, if it is out of bounds, the 
         //code will not access it.
-        internal Int32 receiveMessageOffset;
+        internal int receiveMessageOffset;
         internal Byte[] byteArrayForPrefix;
-        internal readonly Int32 receivePrefixLength;
-        internal Int32 receivedPrefixBytesDoneCount = 0;
-        internal Int32 receivedMessageBytesDoneCount = 0;
+        internal readonly int receivePrefixLength;
+        internal int receivedPrefixBytesDoneCount = 0;
+        internal int receivedMessageBytesDoneCount = 0;
         //This variable will be needed to calculate the value of the
         //receiveMessageOffset variable in one situation. Notice that the
         //name is similar but the usage is different from the variable
         //receiveSendToken.receivePrefixBytesDone.
-        internal Int32 recPrefixBytesDoneThisOp = 0;
+        internal int recPrefixBytesDoneThisOp = 0;
 
-        internal Int32 sendBytesRemainingCount;
-        internal readonly Int32 sendPrefixLength;
+        internal int sendBytesRemainingCount;
+        internal readonly int sendPrefixLength;
         internal Byte[] dataToSend;
-        internal Int32 bytesSentAlreadyCount;
+        internal int bytesSentAlreadyCount;
 
         private int _mainSessionId = 1000000;
 
@@ -45,9 +45,9 @@ namespace Projector.IO.Server
         //It is different from the transmission ID in the DataHolder, which relates
         //to one TCP message. A connected session could have many messages, if you
         //set up your app to allow it.
-        private Int32 sessionId;
+        private int sessionId;
 
-        public DataHoldingUserToken(SocketAsyncEventArgs e, Int32 rOffset, Int32 sOffset, Int32 receivePrefixLength, Int32 sendPrefixLength, Int32 identifier)
+        public DataHoldingUserToken(SocketAsyncEventArgs e, int rOffset, int sOffset, int receivePrefixLength, int sendPrefixLength, int identifier)
         {
             this.idOfThisObject = identifier;
 
@@ -63,7 +63,7 @@ namespace Projector.IO.Server
 
         //Let's use an ID for this object during testing, just so we can see what
         //is happening better if we want to.
-        public Int32 TokenId
+        public int TokenId
         {
             get
             {
@@ -83,7 +83,7 @@ namespace Projector.IO.Server
             sessionId = Interlocked.Increment(ref _mainSessionId);
         }
 
-        public Int32 SessionId
+        public int SessionId
         {
             get
             {

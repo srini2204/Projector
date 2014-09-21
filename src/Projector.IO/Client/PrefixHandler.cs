@@ -5,7 +5,7 @@ namespace Projector.IO.Client
 {
     class PrefixHandler
     {
-        public Int32 HandlePrefix(SocketAsyncEventArgs e, DataHoldingUserToken receiveSendToken, Int32 remainingBytesToProcess)
+        public int HandlePrefix(SocketAsyncEventArgs e, DataHoldingUserToken receiveSendToken, int remainingBytesToProcess)
         {
             //receivedPrefixBytesDoneCount tells us how many prefix bytes were
             //processed during previous receive ops which contained data for 

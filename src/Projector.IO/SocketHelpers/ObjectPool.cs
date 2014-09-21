@@ -6,23 +6,23 @@ namespace Projector.IO.SocketHelpers
 {
     internal sealed class ObjectPool<T>
     {
-        private Int32 nextTokenId = 0;
+        private int nextTokenId = 0;
 
         private Stack<T> _pool;
 
-        internal ObjectPool(Int32 capacity)
+        internal ObjectPool(int capacity)
         {
             _pool = new Stack<T>(capacity);
         }
 
-        internal Int32 Count
+        internal int Count
         {
             get { return _pool.Count; }
         }
 
-        internal Int32 AssignTokenId()
+        internal int AssignTokenId()
         {
-            Int32 tokenId = Interlocked.Increment(ref nextTokenId);
+            int tokenId = Interlocked.Increment(ref nextTokenId);
             return tokenId;
         }
 

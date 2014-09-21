@@ -5,7 +5,7 @@ namespace Projector.IO.Client
 {
     public class DataHolder
     {
-        private Int32 numberOfMessagesSent = 0;
+        private int numberOfMessagesSent = 0;
 
         //We'll just send a string message. And have one or more messages, so
         //we need an array.
@@ -21,7 +21,7 @@ namespace Projector.IO.Client
         {
         }
 
-        public Int32 NumberOfMessagesSent
+        public int NumberOfMessagesSent
         {
             get
             {

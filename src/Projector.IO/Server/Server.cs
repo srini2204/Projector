@@ -9,7 +9,7 @@ namespace Projector.IO.Server
 
     public class Server
     {
-        private Int32 _numberOfAcceptedSockets;
+        private int _numberOfAcceptedSockets;
 
         private BufferManager _theBufferManager;
 

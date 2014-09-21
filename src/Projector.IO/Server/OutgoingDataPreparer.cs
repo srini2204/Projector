@@ -32,7 +32,7 @@ namespace Projector.IO.Server
             Byte[] idByteArray = BitConverter.GetBytes(theDataHolder.receivedTransMissionId);
 
             //Determine the length of all the data that we will send back.
-            Int32 lengthOfCurrentOutgoingMessage = idByteArray.Length + theDataHolder.dataMessageReceived.Length;
+            int lengthOfCurrentOutgoingMessage = idByteArray.Length + theDataHolder.dataMessageReceived.Length;
 
             //So, now we convert the length integer into a byte array.
             //Aren't byte arrays wonderful? Maybe you'll dream about byte arrays tonight!

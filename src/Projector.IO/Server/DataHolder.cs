@@ -15,9 +15,9 @@ namespace Projector.IO.Server
         //DataHolder has this byte array to which you can copy the data.
         internal Byte[] dataMessageReceived;
 
-        internal Int32 receivedTransMissionId;
+        internal int receivedTransMissionId;
 
-        internal Int32 sessionId;
+        internal int sessionId;
 
         //for testing. With a packet analyzer this can help you see specific connections.
         internal EndPoint remoteEndpoint;
