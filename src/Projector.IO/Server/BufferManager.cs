@@ -14,27 +14,22 @@ namespace Projector.IO.Server
         //This buffer is a byte array which the Windows TCP buffer can copy its data to.
 
         // the total number of bytes controlled by the buffer pool
-        int totalBytesInBufferBlock;
+        private int _totalBytesInBufferBlock;
 
         // Byte array maintained by the Buffer Manager.
-        byte[] bufferBlock;
-        Stack<int> freeIndexPool;
-        int currentIndex;
-        int bufferBytesAllocatedForEachSaea;
+        private byte[] _bufferBlock;
+        private Stack<int> _freeIndexPool;
+        private int _currentIndex;
+        private int _bufferBytesAllocatedForEachSaea;
 
         public BufferManager(int totalBytes, int totalBufferBytesInEachSaeaObject)
         {
-            totalBytesInBufferBlock = totalBytes;
-            this.currentIndex = 0;
-            this.bufferBytesAllocatedForEachSaea = totalBufferBytesInEachSaeaObject;
-            this.freeIndexPool = new Stack<int>();
-        }
-
-        // Allocates buffer space used by the buffer pool
-        internal void InitBuffer()
-        {
+            _totalBytesInBufferBlock = totalBytes;
+            _currentIndex = 0;
+            _bufferBytesAllocatedForEachSaea = totalBufferBytesInEachSaeaObject;
+            _freeIndexPool = new Stack<int>();
             // Create one large buffer block.
-            this.bufferBlock = new byte[totalBytesInBufferBlock];
+            _bufferBlock = new byte[_totalBytesInBufferBlock];
         }
 
         // Divide that one large buffer block out to each SocketAsyncEventArg object.
@@ -45,24 +40,24 @@ namespace Projector.IO.Server
         internal bool SetBuffer(SocketAsyncEventArgs args)
         {
 
-            if (this.freeIndexPool.Count > 0)
+            if (_freeIndexPool.Count > 0)
             {
                 //This if-statement is only true if you have called the FreeBuffer
                 //method previously, which would put an offset for a buffer space 
                 //back into this stack.
-                args.SetBuffer(this.bufferBlock, this.freeIndexPool.Pop(), this.bufferBytesAllocatedForEachSaea);
+                args.SetBuffer(_bufferBlock, _freeIndexPool.Pop(), _bufferBytesAllocatedForEachSaea);
             }
             else
             {
                 //Inside this else-statement is the code that is used to set the 
                 //buffer for each SAEA object when the pool of SAEA objects is built
                 //in the Init method.
-                if ((totalBytesInBufferBlock - this.bufferBytesAllocatedForEachSaea) < this.currentIndex)
+                if ((_totalBytesInBufferBlock - _bufferBytesAllocatedForEachSaea) < _currentIndex)
                 {
                     return false;
                 }
-                args.SetBuffer(this.bufferBlock, this.currentIndex, this.bufferBytesAllocatedForEachSaea);
-                this.currentIndex += this.bufferBytesAllocatedForEachSaea;
+                args.SetBuffer(_bufferBlock, _currentIndex, _bufferBytesAllocatedForEachSaea);
+                _currentIndex += _bufferBytesAllocatedForEachSaea;
             }
             return true;
         }
@@ -75,7 +70,7 @@ namespace Projector.IO.Server
         // this app's running.
         internal void FreeBuffer(SocketAsyncEventArgs args)
         {
-            this.freeIndexPool.Push(args.Offset);
+            _freeIndexPool.Push(args.Offset);
             args.SetBuffer(null, 0, 0);
         }
 

@@ -49,8 +49,6 @@ namespace Projector.IO.Server
 
         internal void Init()
         {
-            _theBufferManager.InitBuffer();
-
             for (var i = 0; i < _socketListenerSettings.MaxAcceptOps; i++)
             {
                 _poolOfAcceptSocketAwaitables.Push(CreateNewSaeaForAccept(_poolOfAcceptSocketAwaitables));
