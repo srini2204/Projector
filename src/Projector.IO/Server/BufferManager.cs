@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace SocketAsyncServer
+namespace Projector.IO.Server
 {
     class BufferManager
     {

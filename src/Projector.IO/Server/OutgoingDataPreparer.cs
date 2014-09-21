@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 
-namespace SocketAsyncServer
+namespace Projector.IO.Server
 {
     class OutgoingDataPreparer
     {
-        
+
         private DataHolder theDataHolder;
 
         public OutgoingDataPreparer()
-        {            
+        {
         }
 
         internal void PrepareOutgoingData(SocketAsyncEventArgs e, DataHolder handledDataHolder)
@@ -40,16 +37,16 @@ namespace SocketAsyncServer
             //So, now we convert the length integer into a byte array.
             //Aren't byte arrays wonderful? Maybe you'll dream about byte arrays tonight!
             Byte[] arrayOfBytesInPrefix = BitConverter.GetBytes(lengthOfCurrentOutgoingMessage);
-            
+
             //Create the byte array to send.
             theUserToken.dataToSend = new Byte[theUserToken.sendPrefixLength + lengthOfCurrentOutgoingMessage];
-            
+
             //Now copy the 3 things to the theUserToken.dataToSend.
             Buffer.BlockCopy(arrayOfBytesInPrefix, 0, theUserToken.dataToSend, 0, theUserToken.sendPrefixLength);
             Buffer.BlockCopy(idByteArray, 0, theUserToken.dataToSend, theUserToken.sendPrefixLength, idByteArray.Length);
             //The message that the client sent is already in a byte array, in DataHolder.
             Buffer.BlockCopy(theDataHolder.dataMessageReceived, 0, theUserToken.dataToSend, theUserToken.sendPrefixLength + idByteArray.Length, theDataHolder.dataMessageReceived.Length);
-            
+
             theUserToken.sendBytesRemainingCount = theUserToken.sendPrefixLength + lengthOfCurrentOutgoingMessage;
             theUserToken.bytesSentAlreadyCount = 0;
         }

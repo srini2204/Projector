@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
-namespace SocketAsyncServer
+namespace Projector.IO.Server
 {
     class IncomingDataPreparer
     {

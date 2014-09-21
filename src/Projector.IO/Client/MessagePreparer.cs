@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Net.Sockets;
+using System.Text;
 
-namespace SocketClientAsyncTester
+namespace Projector.IO.Client
 {
     class MessagePreparer
     {
         internal void GetDataToSend(SocketAsyncEventArgs e)
-        {            
+        {
             DataHoldingUserToken theUserToken = (DataHoldingUserToken)e.UserToken;
             DataHolder dataHolder = theUserToken.theDataHolder;
 

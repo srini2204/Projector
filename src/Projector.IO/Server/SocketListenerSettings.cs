@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace SocketAsyncServer
+namespace Projector.IO.Server
 {
     public class SocketListenerSettings
     {
@@ -12,7 +12,7 @@ namespace SocketAsyncServer
                                         int receivePrefixLength,
                                         int receiveBufferSize,
                                         int sendPrefixLength,
-                                        int opsToPreAlloc, 
+                                        int opsToPreAlloc,
                                         IPEndPoint theLocalEndPoint)
         {
             MaxConnections = maxConnections;

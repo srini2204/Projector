@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SocketClientAsyncTester
+namespace Projector.IO.Client
 {
     class DataHoldingUserToken
     {

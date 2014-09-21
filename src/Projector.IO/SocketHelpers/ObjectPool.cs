@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace SocketAsyncServer
+namespace Projector.IO.SocketHelpers
 {
     internal sealed class ObjectPool<T>
     {

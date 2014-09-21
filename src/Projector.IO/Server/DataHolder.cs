@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Text;
 
 
-namespace SocketAsyncServer
+namespace Projector.IO.Server
 {
     class DataHolder
     {

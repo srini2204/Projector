@@ -45,7 +45,6 @@
     <Compile Include="Client\DataHoldingUserToken.cs" />
     <Compile Include="Client\MessageHandler.cs" />
     <Compile Include="Client\MessagePreparer.cs" />
-    <Compile Include="Client\OutgoingMessageHolder.cs" />
     <Compile Include="Client\PrefixHandler.cs" />
     <Compile Include="Client\Client.cs" />
     <Compile Include="Client\SocketClientSettings.cs" />

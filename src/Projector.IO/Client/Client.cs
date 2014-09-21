@@ -3,7 +3,7 @@ using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-namespace SocketClientAsyncTester
+namespace Projector.IO.Client
 {
     public sealed class Client
     {

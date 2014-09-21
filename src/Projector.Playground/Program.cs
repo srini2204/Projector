@@ -1,5 +1,5 @@
-﻿using SocketAsyncServer;
-using SocketClientAsyncTester;
+﻿using Projector.IO.Client;
+using Projector.IO.Server;
 using System;
 using System.Net;
 

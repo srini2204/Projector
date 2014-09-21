@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 
-namespace SocketAsyncServer
+namespace Projector.IO.Server
 {
     class MessageHandler
     {
@@ -12,7 +9,7 @@ namespace SocketAsyncServer
         public bool HandleMessage(SocketAsyncEventArgs receiveSendEventArgs, DataHoldingUserToken receiveSendToken, Int32 remainingBytesToProcess)
         {
             bool incomingTcpMessageIsReady = false;
-            
+
             //Create the array where we'll store the complete message, 
             //if it has not been created on a previous receive op.
             if (receiveSendToken.receivedMessageBytesDoneCount == 0)
@@ -33,7 +30,7 @@ namespace SocketAsyncServer
                 // the total number of bytes we received for this message matched the 
                 // message length value that we got from the prefix.
 
-                
+
 
                 // Write/append the bytes received to the byte array in the 
                 // DataHolder object that we are using to store our data.
@@ -53,7 +50,7 @@ namespace SocketAsyncServer
                 Buffer.BlockCopy(receiveSendEventArgs.Buffer, receiveSendToken.receiveMessageOffset, receiveSendToken.theDataHolder.dataMessageReceived, receiveSendToken.receivedMessageBytesDoneCount, remainingBytesToProcess);
 
                 receiveSendToken.receiveMessageOffset = receiveSendToken.receiveMessageOffset - receiveSendToken.recPrefixBytesDoneThisOp;
-                
+
                 receiveSendToken.receivedMessageBytesDoneCount += remainingBytesToProcess;
             }
 

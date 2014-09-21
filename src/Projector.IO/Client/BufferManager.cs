@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace SocketClientAsyncTester
+namespace Projector.IO.Client
 {
     public class BufferManager
     {
@@ -19,12 +19,12 @@ namespace SocketClientAsyncTester
             m_bufferSize = bufferSize;
             m_freeIndexPool = new Stack<int>();
         }
-                
+
         internal void InitBuffer()
         {
             m_buffer = new byte[m_numBytes];
         }
-        
+
         internal bool SetBuffer(SocketAsyncEventArgs args)
         {
             if (m_freeIndexPool.Count > 0)

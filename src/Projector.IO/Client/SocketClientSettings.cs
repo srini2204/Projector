@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace SocketClientAsyncTester
+namespace Projector.IO.Client
 {
     public class SocketClientSettings
     {

@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
-namespace SocketClientAsyncTester
+namespace Projector.IO.Client
 {
     class BlockingStack<T>
     {

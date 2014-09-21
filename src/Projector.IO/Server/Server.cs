@@ -1,12 +1,10 @@
 using Projector.IO.SocketHelpers;
 using System;
-using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SocketAsyncServer
+namespace Projector.IO.Server
 {
 
     public class Server
