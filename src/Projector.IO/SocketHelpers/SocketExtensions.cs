@@ -36,5 +36,27 @@ namespace Projector.IO.SocketHelpers
 
             return awaitable;
         }
+
+        public static SocketAwaitable ConnectAsync(this Socket socket, SocketAwaitable awaitable)
+        {
+            awaitable.Reset();
+            if (!socket.ConnectAsync(awaitable.EventArgs))
+            {
+                awaitable.WasCompleted = true;
+            }
+
+            return awaitable;
+        }
+
+        public static SocketAwaitable DisconnectAsync(this Socket socket, SocketAwaitable awaitable)
+        {
+            awaitable.Reset();
+            if (!socket.DisconnectAsync(awaitable.EventArgs))
+            {
+                awaitable.WasCompleted = true;
+            }
+
+            return awaitable;
+        }
     }
 }
