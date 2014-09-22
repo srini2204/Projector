@@ -49,6 +49,9 @@
     <Compile Include="Client\Client.cs" />
     <Compile Include="Client\SocketClientSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Protocol\CommandHandlers\SubscribeCommandHandler.cs" />
+    <Compile Include="Protocol\Commands\ICommand.cs" />
+    <Compile Include="Protocol\Commands\SubscribeCommand.cs" />
     <Compile Include="Server\BufferManager.cs" />
     <Compile Include="Server\DataHolder.cs" />
     <Compile Include="Server\DataHoldingUserToken.cs" />
@@ -63,6 +66,7 @@
     <Compile Include="SocketHelpers\SocketAwaitable.cs" />
     <Compile Include="SocketHelpers\SocketExtensions.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

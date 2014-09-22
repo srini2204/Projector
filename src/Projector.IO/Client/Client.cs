@@ -46,7 +46,7 @@ namespace Projector.IO.Client
                 _receiveSendEventArgs = new SocketAsyncEventArgs();
                 _receiveSendEventArgs.SetBuffer(new byte[50], 0, 50);
 
-                var receiveSendToken = new DataHoldingUserToken(_receiveSendEventArgs.Offset, 25, 2, 2, 1000001);
+                var receiveSendToken = new DataHoldingUserToken(_receiveSendEventArgs.Offset, 25, _socketClientSettings.ReceivePrefixLength, _socketClientSettings.SendPrefixLength, 1000001);
 
                 _receiveSendEventArgs.UserToken = receiveSendToken;
                 _receiveSendEventArgs.AcceptSocket = socketAsyncEventArgs.AcceptSocket;
@@ -150,7 +150,7 @@ namespace Projector.IO.Client
                 // processed during previous receive ops which contained data for 
                 // this message. (In normal use, usually there will NOT have been any 
                 // previous receive ops here. So receivedPrefixBytesDoneCount would be 0.)
-                if (receiveSendToken.receivedPrefixBytesDoneCount < this._socketClientSettings.ReceivePrefixLength)
+                if (receiveSendToken.receivedPrefixBytesDoneCount < _socketClientSettings.ReceivePrefixLength)
                 {
                     remainingBytesToProcess = _prefixHandler.HandlePrefix(_receiveSendEventArgs, receiveSendToken, remainingBytesToProcess);
 

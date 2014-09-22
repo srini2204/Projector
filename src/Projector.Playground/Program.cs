@@ -1,4 +1,5 @@
 ﻿using Projector.IO.Client;
+using Projector.IO.Protocol.Commands;
 using Projector.IO.Server;
 using System;
 using System.Net;
@@ -13,11 +14,13 @@ namespace Projector.Playground
             var server = new Server(serverConfig);
             var startedServerTask = server.StartListen();
 
-            var socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 2, 5 * 1024, 2, 10);
+            var socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 4, 10);
             var client = new Client(socketClientSettings);
             client.ConnectAsync().Wait();
-            client.SendAsync(new byte[] { 1, 1 }).Wait();
 
+            var subscribeCommand = new SubscribeCommand("table1");
+            client.SendAsync(subscribeCommand.GetBytes()).Wait();
+            client.ReceiveAsync().Wait();
 
             Console.ReadKey();
         }

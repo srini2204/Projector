@@ -15,7 +15,7 @@ namespace Projector.IO.Server
         internal readonly int permanentReceiveMessageOffset;
         internal readonly int bufferOffsetSend;
 
-        private int idOfThisObject; //for testing only        
+        private int idOfThisObject; //for testing only
 
         internal int lengthOfCurrentIncomingMessage;
 
