@@ -16,6 +16,7 @@ namespace Projector.IO.Client
         MessagePreparer messagePreparer;
 
         private SocketAsyncEventArgs _receiveSendEventArgs;
+        private SocketAwaitable _socketAwaitable;
 
 
 
@@ -44,6 +45,8 @@ namespace Projector.IO.Client
             if (socketAsyncEventArgs.SocketError == SocketError.Success)
             {
                 _receiveSendEventArgs = new SocketAsyncEventArgs();
+                _socketAwaitable = new SocketAwaitable(_receiveSendEventArgs);
+
                 _receiveSendEventArgs.SetBuffer(new byte[50], 0, 50);
 
                 var receiveSendToken = new DataHoldingUserToken(_receiveSendEventArgs.Offset, 25, _socketClientSettings.ReceivePrefixLength, _socketClientSettings.SendPrefixLength, 1000001);
@@ -86,8 +89,7 @@ namespace Projector.IO.Client
                     //in the ProcessSend method.
                 }
 
-                var sendSocketAwaitable = new SocketAwaitable(_receiveSendEventArgs);
-                await _receiveSendEventArgs.AcceptSocket.SendAsync(sendSocketAwaitable);
+                await _receiveSendEventArgs.AcceptSocket.SendAsync(_socketAwaitable);
 
 
 
@@ -120,11 +122,10 @@ namespace Projector.IO.Client
 
             do
             {
-                //Set buffer for receive.          
+                //Set buffer for receive.
                 _receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffsetReceive, _socketClientSettings.BufferSize);
 
-                var recieveSocketAwaitable = new SocketAwaitable(_receiveSendEventArgs);
-                await _receiveSendEventArgs.AcceptSocket.ReceiveAsync(recieveSocketAwaitable);
+                await _receiveSendEventArgs.AcceptSocket.ReceiveAsync(_socketAwaitable);
 
                 // If there was a socket error, close the connection.
                 if (_receiveSendEventArgs.SocketError != SocketError.Success)
@@ -207,8 +208,7 @@ namespace Projector.IO.Client
 
             _receiveSendEventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
 
-            var disconnectSocketAwaitable = new SocketAwaitable(_receiveSendEventArgs);
-            await _receiveSendEventArgs.AcceptSocket.DisconnectAsync(disconnectSocketAwaitable);
+            await _receiveSendEventArgs.AcceptSocket.DisconnectAsync(_socketAwaitable);
 
             if (_receiveSendEventArgs.SocketError != SocketError.Success)
             {
@@ -231,7 +231,7 @@ namespace Projector.IO.Client
             {
                 theSocket.Shutdown(SocketShutdown.Both);
             }
-            catch
+            catch (SocketException)
             {
             }
             theSocket.Close();

@@ -20,22 +20,20 @@ namespace Projector.Playground
 
             var socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 4, 10);
 
-            
+
             var subscribeCommand = new SubscribeCommand("table1");
-            
+
 
             var list = new List<Client>(1);
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 10000; i++)
             {
                 var client = new Client(socketClientSettings);
                 list.Add(client);
-                client.ConnectAsync();
-                //var subscribeCommand = new SubscribeCommand("table1");
-                //client.SendAsync(subscribeCommand.GetBytes());
+                client.ConnectAsync().Wait();
             }
 
 
-
+            Console.WriteLine("Connected. Press any key to send requests. Press Enter to quit");
 
 
             int k = 0;
@@ -44,17 +42,14 @@ namespace Projector.Playground
             {
                 foreach (var client in list)
                 {
-                    k++;
+
                     Console.WriteLine("Client sent " + k);
-                    client.SendAsync(subscribeCommand.GetBytes()).Wait();
+                    client.SendAsync(subscribeCommand.GetBytes());
+                    k++;
                 }
+                Console.WriteLine("Press any key to send requests. Press Enter to quit");
             }
 
-
-            //var subscribeCommand = new SubscribeCommand("table1");
-            //client.SendAsync(subscribeCommand.GetBytes()).Wait();
-            //client.ReceiveAsync().Wait();
-            //client.DisconnectAsync().Wait();
             Console.WriteLine("Done. Press any key...");
             Console.ReadKey();
         }
