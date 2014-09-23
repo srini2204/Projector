@@ -1,5 +1,6 @@
 using Projector.IO.SocketHelpers;
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace Projector.IO.Server
 
     public class Server
     {
+        #region Private fields
         private int _numberOfAcceptedSockets;
 
         private BufferManager _theBufferManager;
@@ -25,8 +27,33 @@ namespace Projector.IO.Server
 
         private ObjectPool<SocketAwaitable> _poolOfAcceptSocketAwaitables;
         private ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
+        #endregion
 
+        #region Events
+        public event EventHandler<ClientConnectedEventArgs> OnClientConnected;
 
+        protected virtual void NotifyClientConnected(IPEndPoint endPoint)
+        {
+            var handler = OnClientConnected;
+            if (handler != null)
+            {
+                handler(this, new ClientConnectedEventArgs(endPoint));
+            }
+        }
+
+        public event EventHandler<ClientConnectedEventArgs> OnClientDisconnected;
+
+        protected virtual void NotifyClientDiconnected(IPEndPoint endPoint)
+        {
+            var handler = OnClientDisconnected;
+            if (handler != null)
+            {
+                handler(this, new ClientConnectedEventArgs(endPoint));
+            }
+        }
+        #endregion
+
+        #region Constructor
         public Server(SocketListenerSettings theSocketListenerSettings)
         {
 
@@ -46,6 +73,7 @@ namespace Projector.IO.Server
 
             Init();
         }
+        #endregion
 
         internal void Init()
         {
@@ -128,6 +156,8 @@ namespace Projector.IO.Server
 
                     continue;
                 }
+
+                NotifyClientConnected(((IPEndPoint)acceptSocketAwaitable.EventArgs.AcceptSocket.RemoteEndPoint));
 
                 Interlocked.Increment(ref _numberOfAcceptedSockets);
 
@@ -312,7 +342,9 @@ namespace Projector.IO.Server
 
         private void CloseClientSocket(SocketAwaitable socketAwaitable)
         {
+
             var eventArgs = socketAwaitable.EventArgs;
+            var endPoint = (IPEndPoint)eventArgs.AcceptSocket.RemoteEndPoint;
             var receiveSendToken = (eventArgs.UserToken as DataHoldingUserToken);
 
             // do a shutdown before you close the socket
@@ -321,7 +353,7 @@ namespace Projector.IO.Server
                 eventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
             }
             // throws if socket was already closed
-            catch (Exception)
+            catch (SocketException)
             {
 
             }
@@ -342,6 +374,8 @@ namespace Projector.IO.Server
             Interlocked.Decrement(ref _numberOfAcceptedSockets);
 
             _theMaxConnectionsEnforcer.Release();
+
+            NotifyClientDiconnected(endPoint);
         }
 
         private void HandleBadAccept(SocketAwaitable socketAwaitable)
@@ -371,5 +405,14 @@ namespace Projector.IO.Server
                 eventArgs.Dispose();
             }
         }
+    }
+
+    public class ClientConnectedEventArgs : EventArgs
+    {
+        public ClientConnectedEventArgs(IPEndPoint endPoint)
+        {
+            EndPoint = endPoint;
+        }
+        public IPEndPoint EndPoint { get; private set; }
     }
 }
