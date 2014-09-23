@@ -41,14 +41,25 @@ namespace Projector.IO.Server
             }
         }
 
-        public event EventHandler<ClientConnectedEventArgs> OnClientDisconnected;
+        public event EventHandler<ClientDisconnectedEventArgs> OnClientDisconnected;
 
         protected virtual void NotifyClientDiconnected(IPEndPoint endPoint)
         {
             var handler = OnClientDisconnected;
             if (handler != null)
             {
-                handler(this, new ClientConnectedEventArgs(endPoint));
+                handler(this, new ClientDisconnectedEventArgs(endPoint));
+            }
+        }
+
+        public event EventHandler<RequestReceivedEventArgs> OnRequestReceived;
+
+        protected virtual void NotifyRequestReceived(IPEndPoint endPoint)
+        {
+            var handler = OnRequestReceived;
+            if (handler != null)
+            {
+                handler(this, new RequestReceivedEventArgs(endPoint));
             }
         }
         #endregion
@@ -236,10 +247,7 @@ namespace Projector.IO.Server
 
                 if (incomingTcpMessageIsReady == true)
                 {
-                    // Pass the DataHolder object to the Mediator here. The data in
-                    // this DataHolder can be used for all kinds of things that an
-                    // intelligent and creative person like you might think of.
-                    receiveSendToken.theMediator.HandleData(receiveSendToken.theDataHolder);
+                    NotifyRequestReceived((IPEndPoint)receiveSendEventArgs.AcceptSocket.RemoteEndPoint);
 
                     // Create a new DataHolder for next message.
                     receiveSendToken.CreateNewDataHolder();
@@ -249,8 +257,8 @@ namespace Projector.IO.Server
                     //SAEA object.
                     receiveSendToken.Reset();
 
-                    receiveSendToken.theMediator.PrepareOutgoingData();
-                    await StartSend(receiveSendSocketAwaitable);
+                    //receiveSendToken.theMediator.PrepareOutgoingData();
+                    //await StartSend(receiveSendSocketAwaitable);
                 }
                 else
                 {
@@ -415,4 +423,23 @@ namespace Projector.IO.Server
         }
         public IPEndPoint EndPoint { get; private set; }
     }
+
+    public class ClientDisconnectedEventArgs : EventArgs
+    {
+        public ClientDisconnectedEventArgs(IPEndPoint endPoint)
+        {
+            EndPoint = endPoint;
+        }
+        public IPEndPoint EndPoint { get; private set; }
+    }
+
+    public class RequestReceivedEventArgs : EventArgs
+    {
+        public RequestReceivedEventArgs(IPEndPoint endPoint)
+        {
+            EndPoint = endPoint;
+        }
+        public IPEndPoint EndPoint { get; private set; }
+    }
+
 }
