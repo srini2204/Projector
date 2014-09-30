@@ -52,6 +52,8 @@
     <Compile Include="Protocol\CommandHandlers\SubscribeCommandHandler.cs" />
     <Compile Include="Protocol\Commands\ICommand.cs" />
     <Compile Include="Protocol\Commands\SubscribeCommand.cs" />
+    <Compile Include="Protocol\Responses\IResponse.cs" />
+    <Compile Include="Protocol\Responses\OkResponse.cs" />
     <Compile Include="Server\BufferManager.cs" />
     <Compile Include="Server\DataHolder.cs" />
     <Compile Include="Server\DataHoldingUserToken.cs" />
