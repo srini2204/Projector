@@ -11,12 +11,9 @@ namespace Projector.Playground
     {
         static void Main(string[] args)
         {
-            var serverConfig = new SocketListenerSettings(10000, 1, 100, 10, 4, 25, 4, 10, new IPEndPoint(IPAddress.Any, 4444));
-            var server = new Server(serverConfig);
-            server.OnClientConnected += server_OnClientConnected;
-            server.OnClientDisconnected += server_OnClientDisconnected;
-            server.OnRequestReceived += server_OnRequestReceived;
-            var startedServerTask = server.StartListen();
+            var server = new Server();
+
+            var startedServerTask = server.Start();
 
             var socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 4, 10);
 
@@ -40,12 +37,15 @@ namespace Projector.Playground
 
             while (Console.ReadKey().Key != ConsoleKey.Enter)
             {
-                foreach (var client in list)
+                for (int i = 0; i < 100; i++)
                 {
+                    foreach (var client in list)
+                    {
 
-                    Console.WriteLine("Client sent " + k);
-                    client.SendAsync(subscribeCommand.GetBytes());
-                    k++;
+                        client.SendAsync(subscribeCommand.GetBytes());
+                        k++;
+                    }
+                    Console.WriteLine("Client sent " + i);
                 }
                 Console.WriteLine("Press any key to send requests. Press Enter to quit");
             }
@@ -56,7 +56,7 @@ namespace Projector.Playground
 
         static void server_OnRequestReceived(object sender, RequestReceivedEventArgs e)
         {
-            Console.WriteLine("Server: client from: " + e.EndPoint.Address + ":" + e.EndPoint.Port + " sent some data");
+            //Console.WriteLine("Server: client from: " + e.EndPoint.Address + ":" + e.EndPoint.Port + " sent some data");
         }
 
         static void server_OnClientDisconnected(object sender, ClientDisconnectedEventArgs e)

@@ -60,8 +60,9 @@
     <Compile Include="Server\MessageHandler.cs" />
     <Compile Include="Server\OutgoingDataPreparer.cs" />
     <Compile Include="Server\PrefixHandler.cs" />
-    <Compile Include="SocketHelpers\ObjectPool.cs" />
     <Compile Include="Server\Server.cs" />
+    <Compile Include="SocketHelpers\ObjectPool.cs" />
+    <Compile Include="Server\SocketListener.cs" />
     <Compile Include="Server\SocketListenerSettings.cs" />
     <Compile Include="SocketHelpers\SocketAwaitable.cs" />
     <Compile Include="SocketHelpers\SocketExtensions.cs" />
