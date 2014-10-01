@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Net.Sockets;
 using System.Threading;
 
-namespace Projector.IO.Server
+namespace Projector.IO.SocketHelpers
 {
     class DataHoldingUserToken
     {
         internal DataHolder theDataHolder;
 
-        internal int socketHandleNumber;
-
-        internal readonly int bufferOffsetReceive;
+        internal readonly int bufferOffset;
+        internal readonly int prefixLength;
         internal readonly int permanentReceiveMessageOffset;
-        internal readonly int bufferOffsetSend;
-
-        private int idOfThisObject; //for testing only
 
         internal int lengthOfCurrentIncomingMessage;
 
@@ -24,7 +19,6 @@ namespace Projector.IO.Server
         //code will not access it.
         internal int receiveMessageOffset;
         internal Byte[] byteArrayForPrefix;
-        internal readonly int receivePrefixLength;
         internal int receivedPrefixBytesDoneCount = 0;
         internal int receivedMessageBytesDoneCount = 0;
         //This variable will be needed to calculate the value of the
@@ -34,7 +28,6 @@ namespace Projector.IO.Server
         internal int recPrefixBytesDoneThisOp = 0;
 
         internal int sendBytesRemainingCount;
-        internal readonly int sendPrefixLength;
         internal Byte[] dataToSend;
         internal int bytesSentAlreadyCount;
 
@@ -46,27 +39,13 @@ namespace Projector.IO.Server
         //set up your app to allow it.
         private int sessionId;
 
-        public DataHoldingUserToken(SocketAsyncEventArgs e, int rOffset, int sOffset, int receivePrefixLength, int sendPrefixLength, int identifier)
+        public DataHoldingUserToken(int offset, int prefixLength)
         {
-            this.idOfThisObject = identifier;
 
-            //Create a Mediator that has a reference to the SAEA object.
-            this.bufferOffsetReceive = rOffset;
-            this.bufferOffsetSend = sOffset;
-            this.receivePrefixLength = receivePrefixLength;
-            this.sendPrefixLength = sendPrefixLength;
-            this.receiveMessageOffset = rOffset + receivePrefixLength;
+            this.bufferOffset = offset;
+            this.prefixLength = prefixLength;
+            this.receiveMessageOffset = offset + prefixLength;
             this.permanentReceiveMessageOffset = this.receiveMessageOffset;
-        }
-
-        //Let's use an ID for this object during testing, just so we can see what
-        //is happening better if we want to.
-        public int TokenId
-        {
-            get
-            {
-                return this.idOfThisObject;
-            }
         }
 
         internal void CreateNewDataHolder()

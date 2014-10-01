@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 
-namespace Projector.IO.Client
+namespace Projector.IO.SocketHelpers
 {
     class PrefixHandler
     {
@@ -16,34 +16,29 @@ namespace Projector.IO.Client
             //already done it in a previous loop.
             if (receiveSendToken.receivedPrefixBytesDoneCount == 0)
             {
-
-                receiveSendToken.byteArrayForPrefix = new Byte[receiveSendToken.receivePrefixLength];
+                receiveSendToken.byteArrayForPrefix = new Byte[receiveSendToken.prefixLength];
             }
 
-            //If this next if-statement is true, then we have received at 
-            //least enough bytes to have the prefix. So we can determine the 
-            //length of the message that we are working on.
-            if (remainingBytesToProcess >= receiveSendToken.receivePrefixLength - receiveSendToken.receivedPrefixBytesDoneCount)
+            // If this next if-statement is true, then we have received >=
+            // enough bytes to have the prefix. So we can determine the 
+            // length of the message that we are working on.
+            if (remainingBytesToProcess >= receiveSendToken.prefixLength - receiveSendToken.receivedPrefixBytesDoneCount)
             {
-
                 //Now copy that many bytes to byteArrayForPrefix.
                 //We can use the variable receiveMessageOffset as our main
                 //index to show which index to get data from in the TCP
                 //buffer.
-                Buffer.BlockCopy(e.Buffer, receiveSendToken.receiveMessageOffset - receiveSendToken.receivePrefixLength + receiveSendToken.receivedPrefixBytesDoneCount, receiveSendToken.byteArrayForPrefix, receiveSendToken.receivedPrefixBytesDoneCount, receiveSendToken.receivePrefixLength - receiveSendToken.receivedPrefixBytesDoneCount);
+                Buffer.BlockCopy(e.Buffer, receiveSendToken.receiveMessageOffset - receiveSendToken.prefixLength + receiveSendToken.receivedPrefixBytesDoneCount, receiveSendToken.byteArrayForPrefix, receiveSendToken.receivedPrefixBytesDoneCount, receiveSendToken.prefixLength - receiveSendToken.receivedPrefixBytesDoneCount);
 
-                remainingBytesToProcess = remainingBytesToProcess - receiveSendToken.receivePrefixLength + receiveSendToken.receivedPrefixBytesDoneCount;
+                remainingBytesToProcess = remainingBytesToProcess - receiveSendToken.prefixLength + receiveSendToken.receivedPrefixBytesDoneCount;
 
-                receiveSendToken.recPrefixBytesDoneThisOp = receiveSendToken.receivePrefixLength - receiveSendToken.receivedPrefixBytesDoneCount;
+                receiveSendToken.recPrefixBytesDoneThisOp = receiveSendToken.prefixLength - receiveSendToken.receivedPrefixBytesDoneCount;
 
-                receiveSendToken.receivedPrefixBytesDoneCount = receiveSendToken.receivePrefixLength;
+                receiveSendToken.receivedPrefixBytesDoneCount = receiveSendToken.prefixLength;
 
                 receiveSendToken.lengthOfCurrentIncomingMessage = BitConverter.ToInt32(receiveSendToken.byteArrayForPrefix, 0);
 
 
-
-
-                return remainingBytesToProcess;
             }
 
             //This next else-statement deals with the situation 
@@ -51,18 +46,19 @@ namespace Projector.IO.Client
             //of this prefix in this receive operation, but not all.
             else
             {
-
                 //Write the bytes to the array where we are putting the
                 //prefix data, to save for the next loop.
-                Buffer.BlockCopy(e.Buffer, receiveSendToken.receiveMessageOffset - receiveSendToken.receivePrefixLength + receiveSendToken.receivedPrefixBytesDoneCount, receiveSendToken.byteArrayForPrefix, receiveSendToken.receivedPrefixBytesDoneCount, remainingBytesToProcess);
+                Buffer.BlockCopy(e.Buffer, receiveSendToken.receiveMessageOffset - receiveSendToken.prefixLength + receiveSendToken.receivedPrefixBytesDoneCount, receiveSendToken.byteArrayForPrefix, receiveSendToken.receivedPrefixBytesDoneCount, remainingBytesToProcess);
 
                 receiveSendToken.recPrefixBytesDoneThisOp = remainingBytesToProcess;
                 receiveSendToken.receivedPrefixBytesDoneCount += remainingBytesToProcess;
                 remainingBytesToProcess = 0;
             }
 
-            // Deal with the situation where we got exactly the amount of data
-            // needed for the prefix, but no more.
+            // This section is needed when we have received
+            // an amount of data exactly equal to the amount needed for the prefix,
+            // but no more. And also needed with the situation where we have received
+            // less than the amount of data needed for prefix. 
             if (remainingBytesToProcess == 0)
             {
                 receiveSendToken.receiveMessageOffset = receiveSendToken.receiveMessageOffset - receiveSendToken.recPrefixBytesDoneThisOp;

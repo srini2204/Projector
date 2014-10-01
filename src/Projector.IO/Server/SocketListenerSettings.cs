@@ -8,8 +8,8 @@ namespace Projector.IO.Server
                                         int excessSaeaObjectsInPool,
                                         int backlog,
                                         int maxSimultaneousAcceptOps,
-                                        int receivePrefixLength,
-                                        int receiveBufferSize,
+                                        int prefixLength,
+                                        int bufferSize,
                                         int sendPrefixLength,
                                         int opsToPreAlloc,
                                         IPEndPoint theLocalEndPoint)
@@ -18,9 +18,8 @@ namespace Projector.IO.Server
             NumberOfSaeaForRecSend = MaxConnections + excessSaeaObjectsInPool;
             Backlog = backlog;
             MaxAcceptOps = maxSimultaneousAcceptOps;
-            ReceivePrefixLength = receivePrefixLength;
-            BufferSize = receiveBufferSize;
-            SendPrefixLength = sendPrefixLength;
+            PrefixLength = prefixLength;
+            BufferSize = bufferSize;
             OpsToPreAllocate = opsToPreAlloc;
             LocalEndPoint = theLocalEndPoint;
         }
@@ -48,17 +47,12 @@ namespace Projector.IO.Server
         /// <summary>
         /// Length of message prefix for receive ops
         /// </summary>
-        public int ReceivePrefixLength { get; private set; }
+        public int PrefixLength { get; private set; }
 
         /// <summary>
-        /// Buffer size to use for each socket receive operation
+        /// Buffer size to use for each socket operation
         /// </summary>
         public int BufferSize { get; private set; }
-
-        /// <summary>
-        /// Length of message prefix for send ops
-        /// </summary>
-        public int SendPrefixLength { get; private set; }
 
         /// <summary>
         /// See comments in buffer manager

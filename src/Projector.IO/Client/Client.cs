@@ -10,7 +10,7 @@ namespace Projector.IO.Client
 
         public Client()
         {
-            var socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 4, 10);
+            var socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 10);
             _socketClient = new SocketClient(socketClientSettings);
         }
 
@@ -18,17 +18,18 @@ namespace Projector.IO.Client
         {
             await _socketClient.SendAsync(command.GetBytes());
 
+            var res = await _socketClient.ReceiveAsync();
         }
 
         public async Task ConnectAsync()
         {
             await _socketClient.ConnectAsync();
 
-            Task.Run(async () =>
-            {
-                var res = await _socketClient.ReceiveAsync();
+            //Task.Run(async () =>
+            //{
+            //    var res = await _socketClient.ReceiveAsync();
 
-            });
+            //});
 
         }
 

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Net;
 
 
-namespace Projector.IO.Server
+namespace Projector.IO.SocketHelpers
 {
     class DataHolder
     {
@@ -15,11 +14,5 @@ namespace Projector.IO.Server
         //DataHolder has this byte array to which you can copy the data.
         internal Byte[] dataMessageReceived;
 
-        internal int receivedTransMissionId;
-
-        internal int sessionId;
-
-        //for testing. With a packet analyzer this can help you see specific connections.
-        internal EndPoint remoteEndpoint;
     }
 }

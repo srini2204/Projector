@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace Projector.IO.Server
+namespace Projector.IO.SocketHelpers
 {
     class BufferManager
     {

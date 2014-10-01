@@ -43,9 +43,9 @@ namespace Projector.IO.Client
                 _receiveSendEventArgs = new SocketAsyncEventArgs();
                 _socketAwaitable = new SocketAwaitable(_receiveSendEventArgs);
 
-                _receiveSendEventArgs.SetBuffer(new byte[50], 0, 50);
+                _receiveSendEventArgs.SetBuffer(new byte[_socketClientSettings.BufferSize], 0, _socketClientSettings.BufferSize);
 
-                var receiveSendToken = new DataHoldingUserToken(_receiveSendEventArgs.Offset, 25, _socketClientSettings.ReceivePrefixLength, _socketClientSettings.SendPrefixLength, 1000001);
+                var receiveSendToken = new DataHoldingUserToken(_receiveSendEventArgs.Offset, _socketClientSettings.PrefixLength);
                 receiveSendToken.CreateNewDataHolder();
                 _receiveSendEventArgs.UserToken = receiveSendToken;
                 _receiveSendEventArgs.AcceptSocket = socketAsyncEventArgs.AcceptSocket;
@@ -62,24 +62,24 @@ namespace Projector.IO.Client
         public async Task SendAsync(byte[] data)
         {
             DataHoldingUserToken receiveSendToken = (DataHoldingUserToken)_receiveSendEventArgs.UserToken;
-            receiveSendToken.sendBytesRemaining = data.Length;
+            receiveSendToken.sendBytesRemainingCount = data.Length;
             do
             {
 
-                if (receiveSendToken.sendBytesRemaining <= _socketClientSettings.BufferSize)
+                if (receiveSendToken.sendBytesRemainingCount <= _socketClientSettings.BufferSize)
                 {
-                    _receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffsetSend, receiveSendToken.sendBytesRemaining);
+                    _receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffset, receiveSendToken.sendBytesRemainingCount);
                     //Copy the bytes to the buffer associated with this SAEA object.
-                    Buffer.BlockCopy(data, receiveSendToken.bytesSentAlready, _receiveSendEventArgs.Buffer, receiveSendToken.bufferOffsetSend, receiveSendToken.sendBytesRemaining);
+                    Buffer.BlockCopy(data, receiveSendToken.bytesSentAlreadyCount, _receiveSendEventArgs.Buffer, receiveSendToken.bufferOffset, receiveSendToken.sendBytesRemainingCount);
                 }
                 else
                 {
                     //We cannot try to set the buffer any larger than its size.
                     //So since receiveSendToken.sendBytesRemaining > its size, we just
                     //set it to the maximum size, to send the most data possible.
-                    _receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffsetSend, _socketClientSettings.BufferSize);
+                    _receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffset, _socketClientSettings.BufferSize);
                     //Copy the bytes to the buffer associated with this SAEA object.
-                    Buffer.BlockCopy(data, receiveSendToken.bytesSentAlready, _receiveSendEventArgs.Buffer, receiveSendToken.bufferOffsetSend, _socketClientSettings.BufferSize);
+                    Buffer.BlockCopy(data, receiveSendToken.bytesSentAlreadyCount, _receiveSendEventArgs.Buffer, receiveSendToken.bufferOffset, _socketClientSettings.BufferSize);
 
                     //We'll change the value of sendUserToken.sendBytesRemaining
                     //in the ProcessSend method.
@@ -91,7 +91,7 @@ namespace Projector.IO.Client
 
                 if (_receiveSendEventArgs.SocketError == SocketError.Success)
                 {
-                    receiveSendToken.sendBytesRemaining = receiveSendToken.sendBytesRemaining - _receiveSendEventArgs.BytesTransferred;
+                    receiveSendToken.sendBytesRemainingCount = receiveSendToken.sendBytesRemainingCount - _receiveSendEventArgs.BytesTransferred;
 
 
                 }
@@ -107,7 +107,7 @@ namespace Projector.IO.Client
                 // bytes in the message. Otherwise, at least one more send
                 // operation will be required to send the data.
             }
-            while (receiveSendToken.sendBytesRemaining != 0);
+            while (receiveSendToken.sendBytesRemainingCount != 0);
         }
 
 
@@ -119,7 +119,7 @@ namespace Projector.IO.Client
             do
             {
                 //Set buffer for receive.
-                _receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffsetReceive, _socketClientSettings.BufferSize);
+                _receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffset, _socketClientSettings.BufferSize);
 
                 await _receiveSendEventArgs.AcceptSocket.ReceiveAsync(_socketAwaitable);
 
@@ -147,7 +147,7 @@ namespace Projector.IO.Client
                 // processed during previous receive ops which contained data for 
                 // this message. (In normal use, usually there will NOT have been any 
                 // previous receive ops here. So receivedPrefixBytesDoneCount would be 0.)
-                if (receiveSendToken.receivedPrefixBytesDoneCount < _socketClientSettings.ReceivePrefixLength)
+                if (receiveSendToken.receivedPrefixBytesDoneCount < _socketClientSettings.PrefixLength)
                 {
                     remainingBytesToProcess = _prefixHandler.HandlePrefix(_receiveSendEventArgs, receiveSendToken, remainingBytesToProcess);
 
@@ -176,7 +176,7 @@ namespace Projector.IO.Client
                     // message. None of it will be prefix. So, we need to move the 
                     // receiveSendToken.receiveMessageOffset to the beginning of the 
                     // buffer space for this SAEA.
-                    receiveSendToken.receiveMessageOffset = receiveSendToken.bufferOffsetReceive;
+                    receiveSendToken.receiveMessageOffset = receiveSendToken.bufferOffset;
 
                     // Do NOT reset receiveSendToken.receivedPrefixBytesDoneCount here.
                     // Just reset recPrefixBytesDoneThisOp.

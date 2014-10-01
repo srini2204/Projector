@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 
-namespace Projector.IO.Client
+namespace Projector.IO.SocketHelpers
 {
     class MessageHandler
     {
@@ -14,7 +14,6 @@ namespace Projector.IO.Client
             //if it has not been created on a previous receive op.
             if (receiveSendToken.receivedMessageBytesDoneCount == 0)
             {
-
                 receiveSendToken.theDataHolder.dataMessageReceived = new Byte[receiveSendToken.lengthOfCurrentIncomingMessage];
             }
 
@@ -45,8 +44,8 @@ namespace Projector.IO.Client
                 // If we are inside this else-statement, then that means that we
                 // need another receive op. We still haven't got the whole message,
                 // even though we have examined all the data that was received.
-                // Not a problem. We just do another receive op to receive more data.
-
+                // Not a problem. In SocketListener.ProcessReceive we will just call
+                // StartReceive to do another receive op to receive more data.
 
                 Buffer.BlockCopy(receiveSendEventArgs.Buffer, receiveSendToken.receiveMessageOffset, receiveSendToken.theDataHolder.dataMessageReceived, receiveSendToken.receivedMessageBytesDoneCount, remainingBytesToProcess);
 

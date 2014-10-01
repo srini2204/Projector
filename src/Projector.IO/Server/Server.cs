@@ -21,13 +21,9 @@ namespace Projector.IO.Server
             _socketListener.OnRequestReceived += _socketListener_OnRequestReceived;
         }
 
-        void _socketListener_OnRequestReceived(object sender, RequestReceivedEventArgs e)
+        async void _socketListener_OnRequestReceived(object sender, RequestReceivedEventArgs e)
         {
-            var awaitableSocket = e.SocketAwaitable;
-            var userToken = (DataHoldingUserToken)awaitableSocket.EventArgs.UserToken;
-            userToken.dataToSend = new OkResponse().GetBytes();
-            userToken.sendBytesRemainingCount = userToken.dataToSend.Length;
-            _socketListener.StartSend(awaitableSocket).Wait();
+            await _socketListener.SendAsync(e.SocketAwaitable.EventArgs.AcceptSocket, new OkResponse().GetBytes());
         }
 
         void _socketListener_OnClientDisconnected(object sender, ClientDisconnectedEventArgs e)

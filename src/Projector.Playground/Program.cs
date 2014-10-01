@@ -17,7 +17,11 @@ namespace Projector.Playground
             var client = new Client();
             client.ConnectAsync().Wait();
 
-            client.SendCommand(subscribeCommand).Wait();
+            for (int i = 0; i < 1000; i++)
+            {
+                client.SendCommand(subscribeCommand).Wait();
+            }
+            
 
             Console.WriteLine("Done. Press any key...");
             Console.ReadKey();

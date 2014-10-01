@@ -39,13 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\BlockingStack.cs" />
-    <Compile Include="Client\BufferManager.cs" />
     <Compile Include="Client\Client.cs" />
-    <Compile Include="Client\DataHolder.cs" />
-    <Compile Include="Client\DataHoldingUserToken.cs" />
-    <Compile Include="Client\MessageHandler.cs" />
-    <Compile Include="Client\PrefixHandler.cs" />
     <Compile Include="Client\SocketClient.cs" />
     <Compile Include="Client\SocketClientSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -54,11 +48,11 @@
     <Compile Include="Protocol\Commands\SubscribeCommand.cs" />
     <Compile Include="Protocol\Responses\IResponse.cs" />
     <Compile Include="Protocol\Responses\OkResponse.cs" />
-    <Compile Include="Server\BufferManager.cs" />
-    <Compile Include="Server\DataHolder.cs" />
-    <Compile Include="Server\DataHoldingUserToken.cs" />
-    <Compile Include="Server\MessageHandler.cs" />
-    <Compile Include="Server\PrefixHandler.cs" />
+    <Compile Include="SocketHelpers\BufferManager.cs" />
+    <Compile Include="SocketHelpers\DataHolder.cs" />
+    <Compile Include="SocketHelpers\DataHoldingUserToken.cs" />
+    <Compile Include="SocketHelpers\MessageHandler.cs" />
+    <Compile Include="SocketHelpers\PrefixHandler.cs" />
     <Compile Include="Server\Server.cs" />
     <Compile Include="SocketHelpers\ObjectPool.cs" />
     <Compile Include="Server\SocketListener.cs" />

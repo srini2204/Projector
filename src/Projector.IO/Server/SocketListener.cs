@@ -94,30 +94,26 @@ namespace Projector.IO.Server
             }
 
 
-            SocketAsyncEventArgs eventArgObjectForPool;
 
-            int tokenId;
 
             for (var i = 0; i < _socketListenerSettings.NumberOfSaeaForRecSend; i++)
             {
-                eventArgObjectForPool = new SocketAsyncEventArgs();
+                var eventArgObject = new SocketAsyncEventArgs();
 
-                _theBufferManager.SetBuffer(eventArgObjectForPool);
-
-                tokenId = _poolOfRecSendSocketAwaitables.AssignTokenId() + 1000000;
+                _theBufferManager.SetBuffer(eventArgObject);
 
                 //We can store data in the UserToken property of SAEA object.
-                var theTempReceiveSendUserToken = new DataHoldingUserToken(eventArgObjectForPool, eventArgObjectForPool.Offset, eventArgObjectForPool.Offset + _socketListenerSettings.BufferSize, _socketListenerSettings.ReceivePrefixLength, _socketListenerSettings.SendPrefixLength, tokenId);
+                var theTempReceiveSendUserToken = new DataHoldingUserToken(eventArgObject.Offset, _socketListenerSettings.PrefixLength);
 
                 //We'll have an object that we call DataHolder, that we can remove from
                 //the UserToken when we are finished with it. So, we can hang on to the
                 //DataHolder, pass it to an app, serialize it, or whatever.
                 theTempReceiveSendUserToken.CreateNewDataHolder();
 
-                eventArgObjectForPool.UserToken = theTempReceiveSendUserToken;
+                eventArgObject.UserToken = theTempReceiveSendUserToken;
 
 
-                _poolOfRecSendSocketAwaitables.Push(new SocketAwaitable(eventArgObjectForPool));
+                _poolOfRecSendSocketAwaitables.Push(new SocketAwaitable(eventArgObject));
             }
         }
 
@@ -208,7 +204,7 @@ namespace Projector.IO.Server
             var receiveSendToken = (DataHoldingUserToken)receiveSendEventArgs.UserToken;
 
             //Set the buffer for the receive operation.
-            receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffsetReceive, _socketListenerSettings.BufferSize);
+            receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffset, _socketListenerSettings.BufferSize);
 
             while (true)
             {
@@ -227,7 +223,7 @@ namespace Projector.IO.Server
 
                 //If we have not got all of the prefix already, 
                 //then we need to work on it here.
-                if (receiveSendToken.receivedPrefixBytesDoneCount < _socketListenerSettings.ReceivePrefixLength)
+                if (receiveSendToken.receivedPrefixBytesDoneCount < _socketListenerSettings.PrefixLength)
                 {
                     remainingBytesToProcess = _prefixHandler.HandlePrefix(receiveSendEventArgs, receiveSendToken, remainingBytesToProcess);
 
@@ -269,7 +265,7 @@ namespace Projector.IO.Server
                     // message. None of it will be prefix. So, we need to move the 
                     // receiveSendToken.receiveMessageOffset to the beginning of the 
                     // receive buffer space for this SAEA.
-                    receiveSendToken.receiveMessageOffset = receiveSendToken.bufferOffsetReceive;
+                    receiveSendToken.receiveMessageOffset = receiveSendToken.bufferOffset;
 
                     // Do NOT reset receiveSendToken.receivedPrefixBytesDoneCount here.
                     // Just reset recPrefixBytesDoneThisOp.
@@ -278,10 +274,17 @@ namespace Projector.IO.Server
             }
         }
 
-        public async Task StartSend(SocketAwaitable socketAwaitable)
+        public async Task SendAsync(Socket socket, byte[] data)
         {
-            var receiveSendEventArgs = socketAwaitable.EventArgs;
-            var receiveSendToken = (DataHoldingUserToken)receiveSendEventArgs.UserToken;
+            var sendSocketAwaitable = _poolOfRecSendSocketAwaitables.Pop();
+
+            sendSocketAwaitable.EventArgs.AcceptSocket = socket;
+
+            var socketEventArgs = sendSocketAwaitable.EventArgs;
+            var userToken = (DataHoldingUserToken)socketEventArgs.UserToken;
+
+            userToken.dataToSend = data;
+            userToken.sendBytesRemainingCount = data.Length;
             do
             {
 
@@ -289,38 +292,38 @@ namespace Projector.IO.Server
                 //the buffer or not. If it is larger than the buffer, then we will have
                 //to post more than one send operation. If it is less than or equal to the
                 //size of the send buffer, then we can accomplish it in one send op.
-                if (receiveSendToken.sendBytesRemainingCount <= _socketListenerSettings.BufferSize)
+                if (userToken.sendBytesRemainingCount <= _socketListenerSettings.BufferSize)
                 {
-                    receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffsetSend, receiveSendToken.sendBytesRemainingCount);
+                    socketEventArgs.SetBuffer(userToken.bufferOffset, userToken.sendBytesRemainingCount);
                     //Copy the bytes to the buffer associated with this SAEA object.
-                    Buffer.BlockCopy(receiveSendToken.dataToSend, receiveSendToken.bytesSentAlreadyCount, receiveSendEventArgs.Buffer, receiveSendToken.bufferOffsetSend, receiveSendToken.sendBytesRemainingCount);
+                    Buffer.BlockCopy(userToken.dataToSend, userToken.bytesSentAlreadyCount, socketEventArgs.Buffer, userToken.bufferOffset, userToken.sendBytesRemainingCount);
                 }
                 else
                 {
                     //We cannot try to set the buffer any larger than its size.
                     //So since receiveSendToken.sendBytesRemainingCount > BufferSize, we just
                     //set it to the maximum size, to send the most data possible.
-                    receiveSendEventArgs.SetBuffer(receiveSendToken.bufferOffsetSend, _socketListenerSettings.BufferSize);
+                    socketEventArgs.SetBuffer(userToken.bufferOffset, _socketListenerSettings.BufferSize);
                     //Copy the bytes to the buffer associated with this SAEA object.
-                    Buffer.BlockCopy(receiveSendToken.dataToSend, receiveSendToken.bytesSentAlreadyCount, receiveSendEventArgs.Buffer, receiveSendToken.bufferOffsetSend, _socketListenerSettings.BufferSize);
+                    Buffer.BlockCopy(userToken.dataToSend, userToken.bytesSentAlreadyCount, socketEventArgs.Buffer, userToken.bufferOffset, _socketListenerSettings.BufferSize);
 
                     //We'll change the value of sendUserToken.sendBytesRemainingCount
                     //in the ProcessSend method.
                 }
 
                 //post asynchronous send operation
-                await receiveSendEventArgs.AcceptSocket.SendAsync(socketAwaitable);
+                await socketEventArgs.AcceptSocket.SendAsync(sendSocketAwaitable);
 
-                if (receiveSendEventArgs.SocketError == SocketError.Success)
+                if (socketEventArgs.SocketError == SocketError.Success)
                 {
-                    receiveSendToken.sendBytesRemainingCount = receiveSendToken.sendBytesRemainingCount - receiveSendEventArgs.BytesTransferred;
+                    userToken.sendBytesRemainingCount = userToken.sendBytesRemainingCount - socketEventArgs.BytesTransferred;
 
-                    if (receiveSendToken.sendBytesRemainingCount != 0)
+                    if (userToken.sendBytesRemainingCount != 0)
                     {
                         // If some of the bytes in the message have NOT been sent,
                         // then we will need to post another send operation, after we store
                         // a count of how many bytes that we sent in this send op.
-                        receiveSendToken.bytesSentAlreadyCount += receiveSendEventArgs.BytesTransferred;
+                        userToken.bytesSentAlreadyCount += socketEventArgs.BytesTransferred;
                         // So let's loop back to StartSend().
                         continue;
                     }
@@ -329,11 +332,14 @@ namespace Projector.IO.Server
                 {
                     // We'll just close the socket if there was a
                     // socket error when receiving data from the client.
-                    receiveSendToken.Reset();
-                    CloseClientSocket(socketAwaitable);
+                    userToken.Reset();
+                    CloseClientSocket(sendSocketAwaitable);
                 }
             }
-            while (receiveSendToken.sendBytesRemainingCount != 0);
+            while (userToken.sendBytesRemainingCount != 0);
+
+            sendSocketAwaitable.EventArgs.AcceptSocket = null;
+            _poolOfRecSendSocketAwaitables.Push(sendSocketAwaitable);
         }
 
         private void CloseClientSocket(SocketAwaitable socketAwaitable)
