@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Projector.IO.Protocol.Responses;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -22,7 +23,10 @@ namespace Projector.IO.Server
 
         void _socketListener_OnRequestReceived(object sender, RequestReceivedEventArgs e)
         {
-            throw new System.NotImplementedException();
+            var awaitableSocket = e.SocketAwaitable;
+            var userToken = (DataHoldingUserToken)awaitableSocket.EventArgs.UserToken;
+            userToken.dataToSend = new OkResponse().GetBytes();
+            _socketListener.StartSend(awaitableSocket).Wait();
         }
 
         void _socketListener_OnClientDisconnected(object sender, ClientDisconnectedEventArgs e)

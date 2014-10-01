@@ -278,7 +278,7 @@ namespace Projector.IO.Server
             }
         }
 
-        private async Task StartSend(SocketAwaitable socketAwaitable)
+        public async Task StartSend(SocketAwaitable socketAwaitable)
         {
             while (true)
             {
