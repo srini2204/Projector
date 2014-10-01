@@ -41,12 +41,12 @@
   <ItemGroup>
     <Compile Include="Client\BlockingStack.cs" />
     <Compile Include="Client\BufferManager.cs" />
+    <Compile Include="Client\Client.cs" />
     <Compile Include="Client\DataHolder.cs" />
     <Compile Include="Client\DataHoldingUserToken.cs" />
     <Compile Include="Client\MessageHandler.cs" />
-    <Compile Include="Client\MessagePreparer.cs" />
     <Compile Include="Client\PrefixHandler.cs" />
-    <Compile Include="Client\Client.cs" />
+    <Compile Include="Client\SocketClient.cs" />
     <Compile Include="Client\SocketClientSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\CommandHandlers\SubscribeCommandHandler.cs" />
@@ -57,10 +57,7 @@
     <Compile Include="Server\BufferManager.cs" />
     <Compile Include="Server\DataHolder.cs" />
     <Compile Include="Server\DataHoldingUserToken.cs" />
-    <Compile Include="Server\IncomingDataPreparer.cs" />
-    <Compile Include="Server\Mediator.cs" />
     <Compile Include="Server\MessageHandler.cs" />
-    <Compile Include="Server\OutgoingDataPreparer.cs" />
     <Compile Include="Server\PrefixHandler.cs" />
     <Compile Include="Server\Server.cs" />
     <Compile Include="SocketHelpers\ObjectPool.cs" />

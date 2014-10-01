@@ -214,8 +214,7 @@ namespace Projector.IO.Server
             {
                 await receiveSendEventArgs.AcceptSocket.ReceiveAsync(receiveSendSocketAwaitable);
 
-                if (receiveSendEventArgs.SocketError != SocketError.Success
-                    || receiveSendEventArgs.BytesTransferred == 0)
+                if (receiveSendEventArgs.SocketError != SocketError.Success || receiveSendEventArgs.BytesTransferred == 0)
                 {
                     receiveSendToken.Reset();
                     CloseClientSocket(receiveSendSocketAwaitable);
@@ -247,6 +246,7 @@ namespace Projector.IO.Server
 
                 if (incomingTcpMessageIsReady == true)
                 {
+
                     NotifyRequestReceived(receiveSendSocketAwaitable);
 
                     // Create a new DataHolder for next message.
@@ -280,23 +280,10 @@ namespace Projector.IO.Server
 
         public async Task StartSend(SocketAwaitable socketAwaitable)
         {
-            while (true)
+            var receiveSendEventArgs = socketAwaitable.EventArgs;
+            var receiveSendToken = (DataHoldingUserToken)receiveSendEventArgs.UserToken;
+            do
             {
-                var receiveSendEventArgs = socketAwaitable.EventArgs;
-                var receiveSendToken = (DataHoldingUserToken)receiveSendEventArgs.UserToken;
-
-                //Set the buffer. You can see on Microsoft's page at 
-                //http://msdn.microsoft.com/en-us/library/system.net.sockets.socketasynceventargs.setbuffer.aspx
-                //that there are two overloads. One of the overloads has 3 parameters.
-                //When setting the buffer, you need 3 parameters the first time you set it,
-                //which we did in the Init method. The first of the three parameters
-                //tells what byte array to use as the buffer. After we tell what byte array
-                //to use we do not need to use the overload with 3 parameters any more.
-                //(That is the whole reason for using the buffer block. You keep the same
-                //byte array as buffer always, and keep it all in one block.)
-                //Now we use the overload with two parameters. We tell 
-                // (1) the offset and
-                // (2) the number of bytes to use, starting at the offset.
 
                 //The number of bytes to send depends on whether the message is larger than
                 //the buffer or not. If it is larger than the buffer, then we will have
@@ -346,6 +333,7 @@ namespace Projector.IO.Server
                     CloseClientSocket(socketAwaitable);
                 }
             }
+            while (receiveSendToken.sendBytesRemainingCount != 0);
         }
 
         private void CloseClientSocket(SocketAwaitable socketAwaitable)

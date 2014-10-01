@@ -6,7 +6,6 @@ namespace Projector.IO.Server
 {
     class DataHoldingUserToken
     {
-        internal Mediator theMediator;
         internal DataHolder theDataHolder;
 
         internal int socketHandleNumber;
@@ -52,7 +51,6 @@ namespace Projector.IO.Server
             this.idOfThisObject = identifier;
 
             //Create a Mediator that has a reference to the SAEA object.
-            this.theMediator = new Mediator(e);
             this.bufferOffsetReceive = rOffset;
             this.bufferOffsetSend = sOffset;
             this.receivePrefixLength = receivePrefixLength;

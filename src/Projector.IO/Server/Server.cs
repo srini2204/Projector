@@ -26,6 +26,7 @@ namespace Projector.IO.Server
             var awaitableSocket = e.SocketAwaitable;
             var userToken = (DataHoldingUserToken)awaitableSocket.EventArgs.UserToken;
             userToken.dataToSend = new OkResponse().GetBytes();
+            userToken.sendBytesRemainingCount = userToken.dataToSend.Length;
             _socketListener.StartSend(awaitableSocket).Wait();
         }
 

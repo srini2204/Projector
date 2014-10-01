@@ -1,7 +1,7 @@
 ﻿
 namespace Projector.IO.Protocol.Commands
 {
-    interface ICommand
+    public interface ICommand
     {
         byte[] GetBytes();
     }

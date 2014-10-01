@@ -2,8 +2,6 @@
 using Projector.IO.Protocol.Commands;
 using Projector.IO.Server;
 using System;
-using System.Collections.Generic;
-using System.Net;
 
 namespace Projector.Playground
 {
@@ -15,22 +13,16 @@ namespace Projector.Playground
 
             var startedServerTask = server.Start();
 
-            var socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 4, 10);
-
-
             var subscribeCommand = new SubscribeCommand("table1");
-            var client = new Client(socketClientSettings);
+            var client = new Client();
             client.ConnectAsync().Wait();
-            client.SendAsync(subscribeCommand.GetBytes()).Wait();
-            client.ReceiveAsync().Wait();
 
-
-            
+            client.SendCommand(subscribeCommand).Wait();
 
             Console.WriteLine("Done. Press any key...");
             Console.ReadKey();
         }
 
-        
+
     }
 }
