@@ -59,6 +59,7 @@
     <Compile Include="Server\SocketListenerSettings.cs" />
     <Compile Include="SocketHelpers\SocketAwaitable.cs" />
     <Compile Include="SocketHelpers\SocketExtensions.cs" />
+    <Compile Include="SocketHelpers\SocketWrapper.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

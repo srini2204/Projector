@@ -16,9 +16,9 @@ namespace Projector.IO.Client
 
         public async Task SendCommand(ICommand command)
         {
-            await _socketClient.SendAsync(command.GetBytes());
+            //await _socketClient.SendAsync(command.GetBytes());
 
-            var res = await _socketClient.ReceiveAsync();
+            //var res = await _socketClient.ReceiveAsync();
         }
 
         public async Task ConnectAsync()

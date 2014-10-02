@@ -7,17 +7,14 @@ namespace Projector.IO.Server
         public SocketListenerSettings(int maxConnections,
                                         int excessSaeaObjectsInPool,
                                         int backlog,
-                                        int maxSimultaneousAcceptOps,
                                         int prefixLength,
                                         int bufferSize,
-                                        int sendPrefixLength,
                                         int opsToPreAlloc,
                                         IPEndPoint theLocalEndPoint)
         {
             MaxConnections = maxConnections;
             NumberOfSaeaForRecSend = MaxConnections + excessSaeaObjectsInPool;
             Backlog = backlog;
-            MaxAcceptOps = maxSimultaneousAcceptOps;
             PrefixLength = prefixLength;
             BufferSize = bufferSize;
             OpsToPreAllocate = opsToPreAlloc;
@@ -38,11 +35,6 @@ namespace Projector.IO.Server
         /// Max # of pending connections the listener can hold in queue
         /// </summary>
         public int Backlog { get; private set; }
-
-        /// <summary>
-        /// Tells us how many objects to put in pool for accept operations
-        /// </summary>
-        public int MaxAcceptOps { get; private set; }
 
         /// <summary>
         /// Length of message prefix for receive ops

@@ -1,4 +1,4 @@
-﻿using Projector.IO.Protocol.Responses;
+﻿using Projector.IO.SocketHelpers;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -8,42 +8,90 @@ namespace Projector.IO.Server
 {
     public class Server
     {
+        private BufferManager _theBufferManager;
+
         private readonly SocketListener _socketListener;
 
         private readonly Dictionary<IPEndPoint, Socket> _clients = new Dictionary<IPEndPoint, Socket>();
 
+        private ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
+
+        private SocketListenerSettings _socketListenerSettings;
+
         public Server()
         {
-            var serverConfig = new SocketListenerSettings(10000, 1, 100, 10, 4, 25, 4, 10, new IPEndPoint(IPAddress.Any, 4444));
-            _socketListener = new SocketListener(serverConfig);
-            _socketListener.OnClientConnected += _socketListener_OnClientConnected;
-            _socketListener.OnClientDisconnected += _socketListener_OnClientDisconnected;
-            _socketListener.OnRequestReceived += _socketListener_OnRequestReceived;
+            _socketListenerSettings = new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444));
+            _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>(_socketListenerSettings.NumberOfSaeaForRecSend);
+            _socketListener = new SocketListener(_socketListenerSettings);
+
+            _theBufferManager = new BufferManager(_socketListenerSettings.BufferSize * _socketListenerSettings.NumberOfSaeaForRecSend * _socketListenerSettings.OpsToPreAllocate,
+            _socketListenerSettings.BufferSize * _socketListenerSettings.OpsToPreAllocate);
+
+
+            Init();
         }
 
-        async void _socketListener_OnRequestReceived(object sender, RequestReceivedEventArgs e)
+        internal void Init()
         {
-            await _socketListener.SendAsync(e.SocketAwaitable.EventArgs.AcceptSocket, new OkResponse().GetBytes());
+            for (var i = 0; i < _socketListenerSettings.NumberOfSaeaForRecSend; i++)
+            {
+                var eventArgObject = new SocketAsyncEventArgs();
+
+                _theBufferManager.SetBuffer(eventArgObject);
+
+                //We can store data in the UserToken property of SAEA object.
+                var theTempReceiveSendUserToken = new DataHoldingUserToken(eventArgObject.Offset, _socketListenerSettings.PrefixLength);
+
+                //We'll have an object that we call DataHolder, that we can remove from
+                //the UserToken when we are finished with it. So, we can hang on to the
+                //DataHolder, pass it to an app, serialize it, or whatever.
+                theTempReceiveSendUserToken.CreateNewDataHolder();
+
+                eventArgObject.UserToken = theTempReceiveSendUserToken;
+
+
+                _poolOfRecSendSocketAwaitables.Push(new SocketAwaitable(eventArgObject));
+            }
         }
 
-        void _socketListener_OnClientDisconnected(object sender, ClientDisconnectedEventArgs e)
+        public async Task Start()
         {
-            _clients.Remove(e.EndPoint);
+            _socketListener.StartListen();
+
+            while (true)
+            {
+                var socket = await _socketListener.TakeNewClient();
+                StatClientServing(socket);
+            }
         }
 
-        void _socketListener_OnClientConnected(object sender, ClientConnectedEventArgs e)
+        private async void StatClientServing(Socket socket)
         {
-            _clients.Add(e.EndPoint, e.Socket);
-        }
+            await Task.Yield();
+            var socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, socket, 4, 25);
 
-        public Task Start()
-        {
-            return _socketListener.StartListen();
+            while (true)
+            {
+                var data = await socketWrapper.ReceiveAsync();
+            }
         }
 
         public void Stop()
         {
 
+        }
+
+        internal void CleanUpOnExit()
+        {
+            DisposeAllSaeaObjects();
+        }
+
+        private void DisposeAllSaeaObjects()
+        {
+            while (_poolOfRecSendSocketAwaitables.Count > 0)
+            {
+                _poolOfRecSendSocketAwaitables.Pop().EventArgs.Dispose();
+            }
         }
     }
 }
