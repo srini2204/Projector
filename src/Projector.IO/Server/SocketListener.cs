@@ -1,7 +1,5 @@
 using Projector.IO.SocketHelpers;
-using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Projector.IO.Server
@@ -12,8 +10,6 @@ namespace Projector.IO.Server
         #region Private fields
 
         private Socket _listenSocket;
-
-        private SemaphoreSlim _theMaxConnectionsEnforcer;
 
         private SocketListenerSettings _socketListenerSettings;
 
@@ -27,9 +23,6 @@ namespace Projector.IO.Server
             _socketListenerSettings = theSocketListenerSettings;
 
             _acceptSocketAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
-
-            // Create connections count enforcer
-            _theMaxConnectionsEnforcer = new SemaphoreSlim(_socketListenerSettings.MaxConnections, _socketListenerSettings.MaxConnections);
         }
         #endregion
 
@@ -49,9 +42,15 @@ namespace Projector.IO.Server
         {
             do
             {
-                await _theMaxConnectionsEnforcer.WaitAsync();
+                try
+                {
+                    await _listenSocket.AcceptAsync(_acceptSocketAwaitable);
+                }
+                catch(SocketException e)
+                {
+                    // we were signaled to stop
 
-                await _listenSocket.AcceptAsync(_acceptSocketAwaitable);
+                }
 
                 if (_acceptSocketAwaitable.EventArgs.SocketError != SocketError.Success)
                 {
@@ -71,7 +70,6 @@ namespace Projector.IO.Server
 
         public void StopListen()
         {
-            _listenSocket.Shutdown(SocketShutdown.Both);
             _listenSocket.Close();
         }
 

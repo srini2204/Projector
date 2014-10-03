@@ -1,22 +1,25 @@
-﻿using Projector.IO.SocketHelpers;
+﻿using Projector.IO.Protocol.Responses;
+using Projector.IO.SocketHelpers;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Projector.IO.Server
 {
     public class Server
     {
-        private BufferManager _theBufferManager;
+        private readonly BufferManager _theBufferManager;
 
         private readonly SocketListener _socketListener;
 
         private readonly Dictionary<IPEndPoint, Socket> _clients = new Dictionary<IPEndPoint, Socket>();
 
-        private ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
+        private readonly ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
 
-        private SocketListenerSettings _socketListenerSettings;
+        private readonly SocketListenerSettings _socketListenerSettings;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         public Server()
         {
@@ -27,8 +30,9 @@ namespace Projector.IO.Server
             _theBufferManager = new BufferManager(_socketListenerSettings.BufferSize * _socketListenerSettings.NumberOfSaeaForRecSend * _socketListenerSettings.OpsToPreAllocate,
             _socketListenerSettings.BufferSize * _socketListenerSettings.OpsToPreAllocate);
 
-
             Init();
+
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         internal void Init()
@@ -57,8 +61,9 @@ namespace Projector.IO.Server
         public async Task Start()
         {
             _socketListener.StartListen();
+            var token = _cancellationTokenSource.Token;
 
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 var socket = await _socketListener.TakeNewClient();
                 StatClientServing(socket);
@@ -70,15 +75,21 @@ namespace Projector.IO.Server
             await Task.Yield();
             var socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, socket, 4, 25);
 
-            while (true)
+            var token = _cancellationTokenSource.Token;
+
+            while (!token.IsCancellationRequested)
             {
                 var data = await socketWrapper.ReceiveAsync();
+                await socketWrapper.SendAsync(new OkResponse().GetBytes());
             }
         }
 
         public void Stop()
         {
+            _cancellationTokenSource.Cancel();
+            _socketListener.StopListen();
 
+            // we can also wait for the clients here
         }
 
         internal void CleanUpOnExit()
