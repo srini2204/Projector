@@ -45,8 +45,7 @@ namespace Projector.IO.SocketHelpers
 
         public void GetResult()
         {
-            if (EventArgs.SocketError != SocketError.Success)
-                throw new SocketException((int)EventArgs.SocketError);
+
         }
     }
 }

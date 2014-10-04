@@ -1,18 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
+using System.Collections.Concurrent;
 
 namespace Projector.IO.SocketHelpers
 {
     internal sealed class ObjectPool<T>
     {
-        private int nextTokenId = 0;
+        private readonly ConcurrentStack<T> _pool;
 
-        private Stack<T> _pool;
-
-        internal ObjectPool(int capacity)
+        internal ObjectPool()
         {
-            _pool = new Stack<T>(capacity);
+            _pool = new ConcurrentStack<T>();
         }
 
         internal int Count
@@ -20,18 +17,15 @@ namespace Projector.IO.SocketHelpers
             get { return _pool.Count; }
         }
 
-        internal int AssignTokenId()
-        {
-            int tokenId = Interlocked.Increment(ref nextTokenId);
-            return tokenId;
-        }
+
 
         internal T Pop()
         {
-            lock (_pool)
-            {
-                return _pool.Pop();
-            }
+            T item;
+            _pool.TryPop(out item);
+
+            return item;
+
         }
 
         internal void Push(T item)

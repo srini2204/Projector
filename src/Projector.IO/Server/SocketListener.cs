@@ -40,27 +40,15 @@ namespace Projector.IO.Server
 
         public async Task<Socket> TakeNewClient()
         {
-            do
+            await _listenSocket.AcceptAsync(_acceptSocketAwaitable);
+
+            if (_acceptSocketAwaitable.EventArgs.SocketError != SocketError.Success)
             {
-                try
-                {
-                    await _listenSocket.AcceptAsync(_acceptSocketAwaitable);
-                }
-                catch(SocketException e)
-                {
-                    // we were signaled to stop
+                //Let's destroy this socket, since it could be bad.
+                _acceptSocketAwaitable.EventArgs.AcceptSocket.Close();
 
-                }
-
-                if (_acceptSocketAwaitable.EventArgs.SocketError != SocketError.Success)
-                {
-                    //Let's destroy this socket, since it could be bad.
-                    _acceptSocketAwaitable.EventArgs.AcceptSocket.Close();
-                }
-
+                return null;
             }
-            while (_acceptSocketAwaitable.EventArgs.SocketError != SocketError.Success);
-
 
             var clientSocket = _acceptSocketAwaitable.EventArgs.AcceptSocket;
             _acceptSocketAwaitable.EventArgs.AcceptSocket = null;

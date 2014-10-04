@@ -1,5 +1,6 @@
-﻿using Projector.IO.Protocol.Responses;
+﻿using Projector.IO.Protocol.CommandHandlers;
 using Projector.IO.SocketHelpers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -14,17 +15,18 @@ namespace Projector.IO.Server
 
         private readonly SocketListener _socketListener;
 
-        private readonly Dictionary<IPEndPoint, Socket> _clients = new Dictionary<IPEndPoint, Socket>();
+        private readonly ConcurrentDictionary<IPEndPoint, SocketWrapper> _clients = new ConcurrentDictionary<IPEndPoint, SocketWrapper>();
 
         private readonly ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
 
         private readonly SocketListenerSettings _socketListenerSettings;
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly ILogicalServer _logicalServer;
 
         public Server()
         {
             _socketListenerSettings = new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444));
-            _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>(_socketListenerSettings.NumberOfSaeaForRecSend);
+            _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
             _socketListener = new SocketListener(_socketListenerSettings);
 
             _theBufferManager = new BufferManager(_socketListenerSettings.BufferSize * _socketListenerSettings.NumberOfSaeaForRecSend * _socketListenerSettings.OpsToPreAllocate,
@@ -33,6 +35,8 @@ namespace Projector.IO.Server
             Init();
 
             _cancellationTokenSource = new CancellationTokenSource();
+
+            _logicalServer = new LogicalServer();
         }
 
         internal void Init()
@@ -66,7 +70,24 @@ namespace Projector.IO.Server
             while (!token.IsCancellationRequested)
             {
                 var socket = await _socketListener.TakeNewClient();
-                StatClientServing(socket);
+
+                if (socket != null)
+                {
+                    StatClientServing(socket);
+                }
+            }
+
+            var taskList = new List<Task>();
+            foreach (var socket in _clients)
+            {
+                taskList.Add(socket.Value.DisconnectAsync());
+            }
+
+            await Task.WhenAll(taskList);
+
+            while (!_clients.IsEmpty)
+            {
+                await Task.Delay(100);
             }
         }
 
@@ -74,14 +95,41 @@ namespace Projector.IO.Server
         {
             await Task.Yield();
             var socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, socket, 4, 25);
+            await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
 
             var token = _cancellationTokenSource.Token;
-
-            while (!token.IsCancellationRequested)
+            var endPoint = (IPEndPoint)socket.RemoteEndPoint;
+            var signaledForStopping = false;
+            while (!token.IsCancellationRequested && !signaledForStopping)
             {
                 var data = await socketWrapper.ReceiveAsync();
-                await socketWrapper.SendAsync(new OkResponse().GetBytes());
+                if (data != null)
+                {
+                    var response = await _logicalServer.ProcessRequestAsync(data);
+
+                    signaledForStopping = !await socketWrapper.SendAsync(response);
+
+                }
+                else
+                {
+                    signaledForStopping = true;
+                }
             }
+
+            await OnClientDiconnected(endPoint);
+        }
+
+        private Task OnClientDiconnected(IPEndPoint endPoint)
+        {
+            SocketWrapper socketWrapper;
+            _clients.TryRemove(endPoint, out socketWrapper);
+            return _logicalServer.ClientDiconnected(endPoint);
+        }
+
+        private Task OnClientConnected(IPEndPoint endPoint, SocketWrapper socketWrapper)
+        {
+            _clients.TryAdd(endPoint, socketWrapper);
+            return _logicalServer.RegisterConnectedClient(endPoint, socketWrapper);
         }
 
         public void Stop()

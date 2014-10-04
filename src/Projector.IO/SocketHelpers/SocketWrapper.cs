@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -17,10 +16,10 @@ namespace Projector.IO.SocketHelpers
             _poolOfRecSendSocketAwaitables = poolOfRecSendSocketAwaitables;
             _socket = socket;
             _bufferSize = bufferSize;
-            _prefixLength = bufferSize;
+            _prefixLength = prefixLength;
         }
 
-        public async Task SendAsync(byte[] data)
+        public async Task<bool> SendAsync(byte[] data)
         {
             var sendSocketAwaitable = _poolOfRecSendSocketAwaitables.Pop();
 
@@ -28,16 +27,18 @@ namespace Projector.IO.SocketHelpers
 
             var sendEventArgs = sendSocketAwaitable.EventArgs;
 
-            DataHoldingUserToken receiveSendToken = (DataHoldingUserToken)sendEventArgs.UserToken;
-            receiveSendToken.sendBytesRemainingCount = data.Length;
+            var receiveSendToken = (DataHoldingUserToken)sendEventArgs.UserToken;
+            var sendBytesRemainingCount = data.Length;
+            var bytesSentAlreadyCount = 0;
+
             do
             {
 
-                if (receiveSendToken.sendBytesRemainingCount <= _bufferSize)
+                if (sendBytesRemainingCount <= _bufferSize)
                 {
-                    sendEventArgs.SetBuffer(receiveSendToken.bufferOffset, receiveSendToken.sendBytesRemainingCount);
+                    sendEventArgs.SetBuffer(receiveSendToken.bufferOffset, sendBytesRemainingCount);
                     //Copy the bytes to the buffer associated with this SAEA object.
-                    Buffer.BlockCopy(data, receiveSendToken.bytesSentAlreadyCount, sendEventArgs.Buffer, receiveSendToken.bufferOffset, receiveSendToken.sendBytesRemainingCount);
+                    Buffer.BlockCopy(data, bytesSentAlreadyCount, sendEventArgs.Buffer, receiveSendToken.bufferOffset, sendBytesRemainingCount);
                 }
                 else
                 {
@@ -46,10 +47,7 @@ namespace Projector.IO.SocketHelpers
                     //set it to the maximum size, to send the most data possible.
                     sendEventArgs.SetBuffer(receiveSendToken.bufferOffset, _bufferSize);
                     //Copy the bytes to the buffer associated with this SAEA object.
-                    Buffer.BlockCopy(data, receiveSendToken.bytesSentAlreadyCount, sendEventArgs.Buffer, receiveSendToken.bufferOffset, _bufferSize);
-
-                    //We'll change the value of sendUserToken.sendBytesRemaining
-                    //in the ProcessSend method.
+                    Buffer.BlockCopy(data, bytesSentAlreadyCount, sendEventArgs.Buffer, receiveSendToken.bufferOffset, _bufferSize);
                 }
 
                 await sendEventArgs.AcceptSocket.SendAsync(sendSocketAwaitable);
@@ -58,9 +56,8 @@ namespace Projector.IO.SocketHelpers
 
                 if (sendEventArgs.SocketError == SocketError.Success)
                 {
-                    receiveSendToken.sendBytesRemainingCount = receiveSendToken.sendBytesRemainingCount - sendEventArgs.BytesTransferred;
-
-
+                    sendBytesRemainingCount = sendBytesRemainingCount - sendEventArgs.BytesTransferred;
+                    bytesSentAlreadyCount = sendEventArgs.BytesTransferred;
                 }
                 else
                 {
@@ -68,16 +65,15 @@ namespace Projector.IO.SocketHelpers
                     // socket error when receiving data from the client.
                     receiveSendToken.Reset();
                     await DisconnectAsync();
+                    return false;
                 }
-
-                // If this if statement is true, then we have sent all of the
-                // bytes in the message. Otherwise, at least one more send
-                // operation will be required to send the data.
             }
-            while (receiveSendToken.sendBytesRemainingCount != 0);
+            while (sendBytesRemainingCount != 0);
 
             sendSocketAwaitable.EventArgs.AcceptSocket = null;
             _poolOfRecSendSocketAwaitables.Push(sendSocketAwaitable);
+
+            return true;
         }
 
 
@@ -89,8 +85,8 @@ namespace Projector.IO.SocketHelpers
 
             var eventArgs = socketAwaitable.EventArgs;
 
-            bool incomingTcpMessageIsReady = false;
-            DataHoldingUserToken receiveSendToken = (DataHoldingUserToken)eventArgs.UserToken;
+            var incomingTcpMessageIsReady = false;
+            var receiveSendToken = (DataHoldingUserToken)eventArgs.UserToken;
 
             do
             {
@@ -100,19 +96,11 @@ namespace Projector.IO.SocketHelpers
                 await eventArgs.AcceptSocket.ReceiveAsync(socketAwaitable);
 
                 // If there was a socket error, close the connection.
-                if (eventArgs.SocketError != SocketError.Success)
+                if (eventArgs.SocketError != SocketError.Success || eventArgs.BytesTransferred == 0)
                 {
                     receiveSendToken.Reset();
                     await DisconnectAsync();
-                    return new byte[] { }; // exception?
-                }
-
-                //If no data was received, close the connection.
-                if (eventArgs.BytesTransferred == 0)
-                {
-                    receiveSendToken.Reset();
-                    await DisconnectAsync();
-                    return new byte[] { }; // exception?
+                    return null;
                 }
 
                 var remainingBytesToProcess = eventArgs.BytesTransferred;
@@ -180,76 +168,36 @@ namespace Projector.IO.SocketHelpers
 
         }
 
-        private void CloseClientSocket(SocketAwaitable socketAwaitable)
-        {
-
-            var eventArgs = socketAwaitable.EventArgs;
-            var endPoint = (IPEndPoint)eventArgs.AcceptSocket.RemoteEndPoint;
-            var receiveSendToken = (eventArgs.UserToken as DataHoldingUserToken);
-
-            // do a shutdown before you close the socket
-            try
-            {
-                eventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
-            }
-            // throws if socket was already closed
-            catch (SocketException)
-            {
-
-            }
-
-            //This method closes the socket and releases all resources, both
-            //managed and unmanaged. It internally calls Dispose.
-            eventArgs.AcceptSocket.Close();
-
-            //Make sure the new DataHolder has been created for the next connection.
-            //If it has, then dataMessageReceived should be null.
-            if (receiveSendToken.theDataHolder.dataMessageReceived != null)
-            {
-                receiveSendToken.CreateNewDataHolder();
-            }
-
-            _poolOfRecSendSocketAwaitables.Push(socketAwaitable);
-
-            //_theMaxConnectionsEnforcer.Release();
-        }
-
         public async Task DisconnectAsync()
         {
             var socketAwaitable = _poolOfRecSendSocketAwaitables.Pop();
 
             socketAwaitable.EventArgs.AcceptSocket = _socket;
 
-            _socket.Shutdown(SocketShutdown.Both);
-
-            await _socket.DisconnectAsync(socketAwaitable);
-
-            if (socketAwaitable.EventArgs.SocketError != SocketError.Success)
+            try
             {
+                _socket.Shutdown(SocketShutdown.Both);
 
+                await _socket.DisconnectAsync(socketAwaitable);
+
+                if (socketAwaitable.EventArgs.SocketError != SocketError.Success)
+                {
+
+                }
+
+                //This method closes the socket and releases all resources, both
+                //managed and unmanaged. It internally calls Dispose.
+                _socket.Close();
             }
-
-            //This method closes the socket and releases all resources, both
-            //managed and unmanaged. It internally calls Dispose.
-            _socket.Close();
+            catch(ObjectDisposedException)
+            {
+                //expected. this is the wait to cancel async IO :-/
+            }
+            
 
             _poolOfRecSendSocketAwaitables.Push(socketAwaitable);
             //create an object that we can write data to.
             //receiveSendToken.CreateNewDataHolder();
         }
-
-
-        private void CloseSocket(Socket theSocket)
-        {
-            try
-            {
-                theSocket.Shutdown(SocketShutdown.Both);
-            }
-            catch (SocketException)
-            {
-            }
-            theSocket.Close();
-        }
-
     }
 }

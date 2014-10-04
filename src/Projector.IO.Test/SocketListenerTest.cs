@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Protocol.CommandHandlers
+namespace Projector.IO.Test
 {
-    class SubscribeCommandHandler
+    class SocketListenerTest
     {
     }
 }

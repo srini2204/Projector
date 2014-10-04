@@ -23,7 +23,7 @@ namespace Projector.IO.Client
         {
             _socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 10);
             _socketConnector = new SocketConnector(_socketClientSettings);
-            _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>(_socketClientSettings.OpsToPreAllocate);
+            _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
 
             _theBufferManager = new BufferManager(_socketClientSettings.BufferSize * _socketClientSettings.OpsToPreAllocate, _socketClientSettings.BufferSize);
 

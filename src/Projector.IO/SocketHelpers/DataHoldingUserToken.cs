@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace Projector.IO.SocketHelpers
 {
@@ -21,23 +20,12 @@ namespace Projector.IO.SocketHelpers
         internal Byte[] byteArrayForPrefix;
         internal int receivedPrefixBytesDoneCount = 0;
         internal int receivedMessageBytesDoneCount = 0;
+
         //This variable will be needed to calculate the value of the
         //receiveMessageOffset variable in one situation. Notice that the
         //name is similar but the usage is different from the variable
         //receiveSendToken.receivePrefixBytesDone.
         internal int recPrefixBytesDoneThisOp = 0;
-
-        internal int sendBytesRemainingCount;
-        internal Byte[] dataToSend;
-        internal int bytesSentAlreadyCount;
-
-        private int _mainSessionId = 1000000;
-
-        //The session ID correlates with all the data sent in a connected session.
-        //It is different from the transmission ID in the DataHolder, which relates
-        //to one TCP message. A connected session could have many messages, if you
-        //set up your app to allow it.
-        private int sessionId;
 
         public DataHoldingUserToken(int offset, int prefixLength)
         {
@@ -51,21 +39,6 @@ namespace Projector.IO.SocketHelpers
         internal void CreateNewDataHolder()
         {
             theDataHolder = new DataHolder();
-        }
-
-        //Used to create sessionId variable in DataHoldingUserToken.
-        //Called in ProcessAccept().
-        internal void CreateSessionId()
-        {
-            sessionId = Interlocked.Increment(ref _mainSessionId);
-        }
-
-        public int SessionId
-        {
-            get
-            {
-                return this.sessionId;
-            }
         }
 
         public void Reset()
