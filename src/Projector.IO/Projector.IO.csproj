@@ -42,6 +42,7 @@
     <Compile Include="Client\Client.cs" />
     <Compile Include="Client\SocketConnector.cs" />
     <Compile Include="Client\SocketClientSettings.cs" />
+    <Compile Include="Client\SubscriptionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\CommandHandlers\ILogicalServer.cs" />
     <Compile Include="Protocol\CommandHandlers\LogicalServer.cs" />

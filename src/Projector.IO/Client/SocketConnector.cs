@@ -1,4 +1,5 @@
 using Projector.IO.SocketHelpers;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -6,18 +7,11 @@ namespace Projector.IO.Client
 {
     public sealed class SocketConnector
     {
-        private readonly SocketClientSettings _socketClientSettings;
-
-        public SocketConnector(SocketClientSettings theSocketClientSettings)
-        {
-            _socketClientSettings = theSocketClientSettings;
-        }
-
-        public async Task<Socket> ConnectAsync()
+        public async Task<Socket> ConnectAsync(IPEndPoint serverEndPoint)
         {
             var socketAsyncEventArgs = new SocketAsyncEventArgs();
 
-            socketAsyncEventArgs.RemoteEndPoint = _socketClientSettings.ServerEndPoint;
+            socketAsyncEventArgs.RemoteEndPoint = serverEndPoint;
 
             socketAsyncEventArgs.AcceptSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 

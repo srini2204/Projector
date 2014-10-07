@@ -115,7 +115,7 @@ namespace Projector.IO.SocketHelpers
                 {
                     remainingBytesToProcess = PrefixHandler.HandlePrefix(eventArgs, receiveSendToken, remainingBytesToProcess);
 
-                    if (remainingBytesToProcess == 0)
+                    if (remainingBytesToProcess == 0 && receiveSendToken.receivedPrefixBytesDoneCount < _prefixLength)
                     {
                         // We need to do another receive op, since we do not have
                         // the message yet.
@@ -189,11 +189,11 @@ namespace Projector.IO.SocketHelpers
                 //managed and unmanaged. It internally calls Dispose.
                 _socket.Close();
             }
-            catch(ObjectDisposedException)
+            catch (ObjectDisposedException)
             {
                 //expected. this is the wait to cancel async IO :-/
             }
-            
+
 
             _poolOfRecSendSocketAwaitables.Push(socketAwaitable);
             //create an object that we can write data to.

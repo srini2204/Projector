@@ -27,7 +27,7 @@ namespace Projector.IO.Server
         {
             _socketListenerSettings = new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444));
             _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
-            _socketListener = new SocketListener(_socketListenerSettings);
+            _socketListener = new SocketListener();
 
             _theBufferManager = new BufferManager(_socketListenerSettings.BufferSize * _socketListenerSettings.NumberOfSaeaForRecSend * _socketListenerSettings.OpsToPreAllocate,
             _socketListenerSettings.BufferSize * _socketListenerSettings.OpsToPreAllocate);
@@ -64,7 +64,7 @@ namespace Projector.IO.Server
 
         public async Task Start()
         {
-            _socketListener.StartListen();
+            _socketListener.StartListen(_socketListenerSettings.LocalEndPoint, _socketListenerSettings.Backlog);
             var token = _cancellationTokenSource.Token;
 
             while (!token.IsCancellationRequested)

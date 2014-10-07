@@ -3,6 +3,7 @@ using Projector.IO.SocketHelpers;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Projector.IO.Client
@@ -19,10 +20,12 @@ namespace Projector.IO.Client
 
         private SocketWrapper _socketWrapper;
 
+        private AutoResetEvent _callSync = new AutoResetEvent(false);
+
         public Client()
         {
             _socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 10);
-            _socketConnector = new SocketConnector(_socketClientSettings);
+            _socketConnector = new SocketConnector();
             _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
 
             _theBufferManager = new BufferManager(_socketClientSettings.BufferSize * _socketClientSettings.OpsToPreAllocate, _socketClientSettings.BufferSize);
@@ -56,22 +59,70 @@ namespace Projector.IO.Client
 
         public async Task SendCommand(ICommand command)
         {
+
             await _socketWrapper.SendAsync(command.GetBytes());
 
-            var res = await _socketWrapper.ReceiveAsync();
+            _callSync.WaitOne();
+
         }
 
         public async Task ConnectAsync()
         {
-            var socket = await _socketConnector.ConnectAsync();
+            var socket = await _socketConnector.ConnectAsync(_socketClientSettings.ServerEndPoint);
 
             _socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, socket, _socketClientSettings.PrefixLength, _socketClientSettings.BufferSize);
+
+
+            StartReadingMessages();
+        }
+
+        private async void StartReadingMessages()
+        {
+            await Task.Yield();
+
+            while (true)
+            {
+                var data = await _socketWrapper.ReceiveAsync();
+                if (data == null)
+                {
+                    NotifyClientDiconnected();
+                    return;
+                }
+
+                if (data.Length > 0)
+                {
+                    _callSync.Set();
+                }
+
+            }
+
 
         }
 
         public Task DisconnectAsync()
         {
             throw new NotImplementedException();
+        }
+
+        #region Events
+        public event EventHandler<ClientDisconnectedEventArgs> OnClientDisconnected;
+
+        protected virtual void NotifyClientDiconnected()
+        {
+            var handler = OnClientDisconnected;
+            if (handler != null)
+            {
+                handler(this, new ClientDisconnectedEventArgs());
+            }
+        }
+
+        #endregion
+
+
+
+        public class ClientDisconnectedEventArgs : EventArgs
+        {
+
         }
     }
 }

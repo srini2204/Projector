@@ -1,5 +1,7 @@
-﻿using Projector.IO.Protocol.Commands;
+﻿using Projector.IO.Client;
+using Projector.IO.Protocol.Commands;
 using System;
+using System.Diagnostics;
 
 namespace Projector.Client
 {
@@ -7,10 +9,16 @@ namespace Projector.Client
     {
         static void Main(string[] args)
         {
-            var client = new IO.Client.Client();
-            client.ConnectAsync().Wait();
-            var subscribeCommand = new SubscribeCommand("table1");
-            client.SendCommand(subscribeCommand).Wait();
+            var subscriptionManager = new SubscriptionManager();
+            
+            while (Console.ReadKey().Key == ConsoleKey.Spacebar)
+            {
+                var stopwatch=Stopwatch.StartNew();
+                subscriptionManager.Subscribe("table1").Wait();
+                stopwatch.Stop();
+                Console.WriteLine("Ok. Took: " + stopwatch.Elapsed);
+            }
+            
 
             Console.WriteLine("Connected. Press any key...");
             Console.ReadKey();

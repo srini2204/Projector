@@ -13,14 +13,14 @@ namespace Projector.Playground
 
             var startedServerTask = server.Start();
 
-            var subscribeCommand = new SubscribeCommand("table1");
-            var client = new Client();
-            client.ConnectAsync().Wait();
+            //var subscribeCommand = new SubscribeCommand("table1");
+            //var client = new Client();
+            //client.ConnectAsync().Wait();
 
-            for (int i = 0; i < 10000; i++)
-            {
-                client.SendCommand(subscribeCommand).Wait();
-            }
+            //for (int i = 0; i < 100000; i++)
+            //{
+            //   client.SendCommand(subscribeCommand).Wait();
+            //}
 
             //server.Stop();
 

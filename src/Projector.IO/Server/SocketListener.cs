@@ -1,4 +1,5 @@
 using Projector.IO.SocketHelpers;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -11,31 +12,23 @@ namespace Projector.IO.Server
 
         private Socket _listenSocket;
 
-        private SocketListenerSettings _socketListenerSettings;
-
         private readonly SocketAwaitable _acceptSocketAwaitable;
         #endregion
 
         #region Constructor
-        public SocketListener(SocketListenerSettings theSocketListenerSettings)
+        public SocketListener()
         {
-
-            _socketListenerSettings = theSocketListenerSettings;
-
             _acceptSocketAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
         }
         #endregion
 
-
-
-
-        public void StartListen()
+        public void StartListen(IPEndPoint localEndpoint, int backlog)
         {
-            _listenSocket = new Socket(_socketListenerSettings.LocalEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _listenSocket = new Socket(localEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            _listenSocket.Bind(_socketListenerSettings.LocalEndPoint);
+            _listenSocket.Bind(localEndpoint);
 
-            _listenSocket.Listen(_socketListenerSettings.Backlog);
+            _listenSocket.Listen(backlog);
         }
 
         public async Task<Socket> TakeNewClient()

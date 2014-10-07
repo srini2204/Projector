@@ -17,8 +17,6 @@ namespace Projector.IO.SocketHelpers
             get { return _pool.Count; }
         }
 
-
-
         internal T Pop()
         {
             T item;
@@ -32,12 +30,10 @@ namespace Projector.IO.SocketHelpers
         {
             if (item == null)
             {
-                throw new ArgumentNullException("Items added to a SocketAsyncEventArgsPool cannot be null");
+                throw new ArgumentNullException("Items added to a Pool cannot be null");
             }
-            lock (_pool)
-            {
-                _pool.Push(item);
-            }
+
+            _pool.Push(item);
         }
     }
 }
