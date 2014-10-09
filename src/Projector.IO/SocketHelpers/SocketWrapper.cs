@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 
 namespace Projector.IO.SocketHelpers
 {
-    class SocketWrapper
+    public class SocketWrapper
     {
         private readonly ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
-        private readonly Socket _socket;
+        private readonly MySocket _socket;
         private readonly int _bufferSize;
         private readonly int _prefixLength;
 
-        public SocketWrapper(ObjectPool<SocketAwaitable> poolOfRecSendSocketAwaitables, Socket socket, int prefixLength, int bufferSize)
+        public SocketWrapper(ObjectPool<SocketAwaitable> poolOfRecSendSocketAwaitables, MySocket socket, int prefixLength, int bufferSize)
         {
             _poolOfRecSendSocketAwaitables = poolOfRecSendSocketAwaitables;
             _socket = socket;
@@ -22,8 +22,6 @@ namespace Projector.IO.SocketHelpers
         public async Task<bool> SendAsync(byte[] data)
         {
             var sendSocketAwaitable = _poolOfRecSendSocketAwaitables.Pop();
-
-            sendSocketAwaitable.EventArgs.AcceptSocket = _socket;
 
             var sendEventArgs = sendSocketAwaitable.EventArgs;
 
@@ -50,7 +48,7 @@ namespace Projector.IO.SocketHelpers
                     Buffer.BlockCopy(data, bytesSentAlreadyCount, sendEventArgs.Buffer, receiveSendToken.bufferOffset, _bufferSize);
                 }
 
-                await sendEventArgs.AcceptSocket.SendAsync(sendSocketAwaitable);
+                await _socket.SendAsync(sendSocketAwaitable);
 
 
 
@@ -70,7 +68,6 @@ namespace Projector.IO.SocketHelpers
             }
             while (sendBytesRemainingCount != 0);
 
-            sendSocketAwaitable.EventArgs.AcceptSocket = null;
             _poolOfRecSendSocketAwaitables.Push(sendSocketAwaitable);
 
             return true;
@@ -80,8 +77,6 @@ namespace Projector.IO.SocketHelpers
         public async Task<byte[]> ReceiveAsync()
         {
             var socketAwaitable = _poolOfRecSendSocketAwaitables.Pop();
-
-            socketAwaitable.EventArgs.AcceptSocket = _socket;
 
             var eventArgs = socketAwaitable.EventArgs;
 
@@ -93,7 +88,7 @@ namespace Projector.IO.SocketHelpers
                 //Set buffer for receive.
                 eventArgs.SetBuffer(receiveSendToken.bufferOffset, _bufferSize);
 
-                await eventArgs.AcceptSocket.ReceiveAsync(socketAwaitable);
+                await _socket.ReceiveAsync(socketAwaitable);
 
                 // If there was a socket error, close the connection.
                 if (eventArgs.SocketError != SocketError.Success || eventArgs.BytesTransferred == 0)
@@ -161,7 +156,6 @@ namespace Projector.IO.SocketHelpers
             //SAEA object.
             receiveSendToken.Reset();
 
-            socketAwaitable.EventArgs.AcceptSocket = null;
             _poolOfRecSendSocketAwaitables.Push(socketAwaitable);
 
             return resultBytes;
@@ -171,8 +165,6 @@ namespace Projector.IO.SocketHelpers
         public async Task DisconnectAsync()
         {
             var socketAwaitable = _poolOfRecSendSocketAwaitables.Pop();
-
-            socketAwaitable.EventArgs.AcceptSocket = _socket;
 
             try
             {

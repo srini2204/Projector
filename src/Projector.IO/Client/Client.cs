@@ -70,7 +70,7 @@ namespace Projector.IO.Client
         {
             var socket = await _socketConnector.ConnectAsync(_socketClientSettings.ServerEndPoint);
 
-            _socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, socket, _socketClientSettings.PrefixLength, _socketClientSettings.BufferSize);
+            _socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, new MySocket(socket), _socketClientSettings.PrefixLength, _socketClientSettings.BufferSize);
 
 
             StartReadingMessages();

@@ -55,6 +55,7 @@
     <Compile Include="SocketHelpers\DataHolder.cs" />
     <Compile Include="SocketHelpers\DataHoldingUserToken.cs" />
     <Compile Include="SocketHelpers\MessageHandler.cs" />
+    <Compile Include="SocketHelpers\MySocket.cs" />
     <Compile Include="SocketHelpers\PrefixHandler.cs" />
     <Compile Include="Server\Server.cs" />
     <Compile Include="SocketHelpers\ObjectPool.cs" />

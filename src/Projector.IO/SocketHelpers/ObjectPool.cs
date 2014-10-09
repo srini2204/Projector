@@ -3,11 +3,11 @@ using System.Collections.Concurrent;
 
 namespace Projector.IO.SocketHelpers
 {
-    internal sealed class ObjectPool<T>
+    public sealed class ObjectPool<T>
     {
         private readonly ConcurrentStack<T> _pool;
 
-        internal ObjectPool()
+        public ObjectPool()
         {
             _pool = new ConcurrentStack<T>();
         }
@@ -17,7 +17,7 @@ namespace Projector.IO.SocketHelpers
             get { return _pool.Count; }
         }
 
-        internal T Pop()
+        public T Pop()
         {
             T item;
             _pool.TryPop(out item);
@@ -26,7 +26,7 @@ namespace Projector.IO.SocketHelpers
 
         }
 
-        internal void Push(T item)
+        public void Push(T item)
         {
             if (item == null)
             {

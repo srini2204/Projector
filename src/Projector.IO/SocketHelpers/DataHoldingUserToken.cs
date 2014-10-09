@@ -2,7 +2,7 @@
 
 namespace Projector.IO.SocketHelpers
 {
-    class DataHoldingUserToken
+    public class DataHoldingUserToken
     {
         internal DataHolder theDataHolder;
 
@@ -36,7 +36,7 @@ namespace Projector.IO.SocketHelpers
             this.permanentReceiveMessageOffset = this.receiveMessageOffset;
         }
 
-        internal void CreateNewDataHolder()
+        public void CreateNewDataHolder()
         {
             theDataHolder = new DataHolder();
         }

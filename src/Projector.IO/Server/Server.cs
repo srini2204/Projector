@@ -94,7 +94,7 @@ namespace Projector.IO.Server
         private async void StatClientServing(Socket socket)
         {
             await Task.Yield();
-            var socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, socket, 4, 25);
+            var socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, new MySocket(socket), 4, 25);
             await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
 
             var token = _cancellationTokenSource.Token;
