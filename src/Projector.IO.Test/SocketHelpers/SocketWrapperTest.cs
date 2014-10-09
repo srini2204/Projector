@@ -73,6 +73,8 @@ namespace Projector.IO.Test.SocketHelpers
             Assert.AreEqual(29, listBytes[0]);
             Assert.AreEqual(9, listBytes[1]);
             Assert.AreEqual(5, listBytes[2]);
+
+            Assert.AreEqual(1, _socketEventArgsPool.Count);
         }
 
         [Test]
@@ -98,7 +100,35 @@ namespace Projector.IO.Test.SocketHelpers
             iSocket.Received(1).SendAsync(Arg.Any<SocketAwaitable>());
             Assert.AreEqual(1, listBytes.Count);
             Assert.AreEqual(29, listBytes[0]);
+
+            Assert.AreEqual(1, _socketEventArgsPool.Count);
         }
+
+        [Test]
+        public async Task TestExceptionDuringSendOperation()
+        {
+            var iSocket = Substitute.For<ISocket>();
+
+            iSocket.SendAsync(Arg.Any<SocketAwaitable>()).Returns(
+            x =>
+            {
+                var aw = x.Arg<SocketAwaitable>();
+                aw.EventArgs.SocketError = SocketError.OperationAborted;
+                return Task.FromResult(0);
+            }
+            );
+
+            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+
+            var res = await socketWrapper.SendAsync(PrepareData(25));
+
+            Assert.False(res);
+            iSocket.Received(1).SendAsync(Arg.Any<SocketAwaitable>());
+            iSocket.Received(1).Close();
+
+            Assert.AreEqual(1, _socketEventArgsPool.Count);
+        }
+
 
         [Test]
         public async Task TestSendWhenDataIsBiggerThanBuferThreeIterration()
@@ -139,9 +169,100 @@ namespace Projector.IO.Test.SocketHelpers
             Assert.AreEqual(100, listBytes[0]);
             Assert.AreEqual(100, listBytes[1]);
             Assert.AreEqual(94, listBytes[2]);
+
+            Assert.AreEqual(1, _socketEventArgsPool.Count);
         }
 
+        [Test]
+        public async Task TestReceiveWhenDataIsSmallerThanBuferOneIterration()
+        {
+            var iSocket = Substitute.For<ISocket>();
 
+            iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
+            x =>
+            {
+                var aw = x.Arg<SocketAwaitable>();
+                aw.BytesTransferred = 44;
+                Buffer.BlockCopy(PrepareData(40), 0, aw.EventArgs.Buffer, 0, 44);
+
+                return Task.FromResult(0);
+            }
+            );
+
+            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+
+            var data = await socketWrapper.ReceiveAsync();
+
+            Assert.AreEqual(40, data.Length);
+            iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>());
+
+
+            Assert.AreEqual(1, _socketEventArgsPool.Count);
+        }
+
+        [Test]
+        public async Task TestReceiveWhenDataIsSmallerThanBuferTwoIterration()
+        {
+            var iSocket = Substitute.For<ISocket>();
+            var mockData = PrepareData(40);
+
+            iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
+            x =>
+            {
+                var aw = x.Arg<SocketAwaitable>();
+                aw.BytesTransferred = 24;
+                Buffer.BlockCopy(mockData, 0, aw.EventArgs.Buffer, 0, 24);
+
+                return Task.FromResult(0);
+            },
+            x =>
+            {
+                var aw = x.Arg<SocketAwaitable>();
+                aw.BytesTransferred = 20;
+                Buffer.BlockCopy(mockData, 24, aw.EventArgs.Buffer, 0, 20);
+
+                return Task.FromResult(0);
+            }
+            );
+
+            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+
+            var data = await socketWrapper.ReceiveAsync();
+
+            Assert.AreEqual(40, data.Length);
+            iSocket.Received(2).ReceiveAsync(Arg.Any<SocketAwaitable>());
+
+
+            Assert.AreEqual(1, _socketEventArgsPool.Count);
+        }
+
+        [Test]
+        public async Task TestReceiveWhenDataIsZeroLength()
+        {
+            var iSocket = Substitute.For<ISocket>();
+            var mockData = PrepareData(0);
+
+            iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
+            x =>
+            {
+                var aw = x.Arg<SocketAwaitable>();
+                aw.BytesTransferred = 4;
+                Buffer.BlockCopy(mockData, 0, aw.EventArgs.Buffer, 0, 4);
+
+                return Task.FromResult(0);
+            }
+            );
+
+            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+
+            var data = await socketWrapper.ReceiveAsync();
+
+            Assert.AreEqual(0, data.Length);
+            iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>());
+
+
+            Assert.AreEqual(1, _socketEventArgsPool.Count);
+        }
 
         private static byte[] PrepareData(int length)
         {

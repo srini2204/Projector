@@ -10,6 +10,10 @@ namespace Projector.IO.SocketHelpers
 
         public MySocket(Socket socket)
         {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("socket");
+            }
             _socket = socket;
         }
 
@@ -41,6 +45,11 @@ namespace Projector.IO.SocketHelpers
 
         private async static Task DoInvoke(Func<SocketAsyncEventArgs, bool> socketAsyncFunc, SocketAwaitable awaitable)
         {
+            if (awaitable == null)
+            {
+                throw new ArgumentNullException("awaitable");
+            }
+
             awaitable.Reset();
             if (!socketAsyncFunc(awaitable.EventArgs))
             {

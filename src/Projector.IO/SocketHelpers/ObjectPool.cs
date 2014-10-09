@@ -12,7 +12,7 @@ namespace Projector.IO.SocketHelpers
             _pool = new ConcurrentStack<T>();
         }
 
-        internal int Count
+        public int Count
         {
             get { return _pool.Count; }
         }
