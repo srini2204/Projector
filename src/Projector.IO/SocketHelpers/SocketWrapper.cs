@@ -7,11 +7,11 @@ namespace Projector.IO.SocketHelpers
     public class SocketWrapper
     {
         private readonly ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
-        private readonly MySocket _socket;
+        private readonly ISocket _socket;
         private readonly int _bufferSize;
         private readonly int _prefixLength;
 
-        public SocketWrapper(ObjectPool<SocketAwaitable> poolOfRecSendSocketAwaitables, MySocket socket, int prefixLength, int bufferSize)
+        public SocketWrapper(ObjectPool<SocketAwaitable> poolOfRecSendSocketAwaitables, ISocket socket, int prefixLength, int bufferSize)
         {
             _poolOfRecSendSocketAwaitables = poolOfRecSendSocketAwaitables;
             _socket = socket;
@@ -54,8 +54,8 @@ namespace Projector.IO.SocketHelpers
 
                 if (sendEventArgs.SocketError == SocketError.Success)
                 {
-                    sendBytesRemainingCount = sendBytesRemainingCount - sendEventArgs.BytesTransferred;
-                    bytesSentAlreadyCount = sendEventArgs.BytesTransferred;
+                    sendBytesRemainingCount = sendBytesRemainingCount - sendSocketAwaitable.BytesTransferred;
+                    bytesSentAlreadyCount += sendSocketAwaitable.BytesTransferred;
                 }
                 else
                 {
@@ -91,14 +91,14 @@ namespace Projector.IO.SocketHelpers
                 await _socket.ReceiveAsync(socketAwaitable);
 
                 // If there was a socket error, close the connection.
-                if (eventArgs.SocketError != SocketError.Success || eventArgs.BytesTransferred == 0)
+                if (eventArgs.SocketError != SocketError.Success || socketAwaitable.BytesTransferred == 0)
                 {
                     receiveSendToken.Reset();
                     await DisconnectAsync();
                     return null;
                 }
 
-                var remainingBytesToProcess = eventArgs.BytesTransferred;
+                var remainingBytesToProcess = socketAwaitable.BytesTransferred;
 
 
                 // If we have not got all of the prefix then we need to work on it. 

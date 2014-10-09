@@ -12,7 +12,7 @@ namespace Projector.IO.SocketHelpers
 
         internal bool WasCompleted;
         internal Action Continuation;
-        internal SocketAsyncEventArgs EventArgs;
+        public SocketAsyncEventArgs EventArgs;
 
         public SocketAwaitable(SocketAsyncEventArgs eventArgs)
         {
@@ -47,5 +47,7 @@ namespace Projector.IO.SocketHelpers
         {
 
         }
+
+        public int BytesTransferred { get; set; }
     }
 }
