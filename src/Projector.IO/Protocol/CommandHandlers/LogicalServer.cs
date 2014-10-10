@@ -2,6 +2,7 @@
 using Projector.IO.SocketHelpers;
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.Timers;
@@ -28,13 +29,13 @@ namespace Projector.IO.Protocol.CommandHandlers
         {
             foreach (var client in _clients)
             {
-                await client.Value.SendAsync(Heartbeat.GetBytes());
+                //await client.Value.SendAsync(Heartbeat.GetBytes());
             }
         }
 
-        public Task<byte[]> ProcessRequestAsync(byte[] data)
+        public Task ProcessRequestAsync(Stream inputStream, Stream outputStream)
         {
-            return Task.FromResult(OkResponse.GetBytes());
+            return outputStream.WriteAsync(OkResponse.GetBytes(), 0, OkResponse.GetBytes().Length);
         }
 
 

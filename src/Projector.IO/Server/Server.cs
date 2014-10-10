@@ -2,6 +2,7 @@
 using Projector.IO.SocketHelpers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -48,15 +49,7 @@ namespace Projector.IO.Server
                 _theBufferManager.SetBuffer(eventArgObject);
 
                 //We can store data in the UserToken property of SAEA object.
-                var theTempReceiveSendUserToken = new DataHoldingUserToken(eventArgObject.Offset, _socketListenerSettings.PrefixLength);
-
-                //We'll have an object that we call DataHolder, that we can remove from
-                //the UserToken when we are finished with it. So, we can hang on to the
-                //DataHolder, pass it to an app, serialize it, or whatever.
-                theTempReceiveSendUserToken.CreateNewDataHolder();
-
-                eventArgObject.UserToken = theTempReceiveSendUserToken;
-
+                eventArgObject.UserToken = new DataHoldingUserToken(eventArgObject.Offset);
 
                 _poolOfRecSendSocketAwaitables.Push(new SocketAwaitable(eventArgObject));
             }
@@ -100,19 +93,23 @@ namespace Projector.IO.Server
             var token = _cancellationTokenSource.Token;
             var endPoint = (IPEndPoint)socket.RemoteEndPoint;
             var signaledForStopping = false;
-            while (!token.IsCancellationRequested && !signaledForStopping)
+            using (var inputStream = new MemoryStream())
+            using (var outputStream = new MemoryStream())
             {
-                var data = await socketWrapper.ReceiveAsync();
-                if (data != null)
+                while (!token.IsCancellationRequested && !signaledForStopping)
                 {
-                    var response = await _logicalServer.ProcessRequestAsync(data);
+                    var success = await socketWrapper.ReceiveAsync(inputStream);
+                    if (success)
+                    {
+                        await _logicalServer.ProcessRequestAsync(inputStream, outputStream);
 
-                    signaledForStopping = !await socketWrapper.SendAsync(response);
+                        signaledForStopping = !await socketWrapper.SendAsync(outputStream);
 
-                }
-                else
-                {
-                    signaledForStopping = true;
+                    }
+                    else
+                    {
+                        signaledForStopping = true;
+                    }
                 }
             }
 

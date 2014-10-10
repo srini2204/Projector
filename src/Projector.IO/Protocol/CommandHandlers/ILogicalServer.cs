@@ -1,4 +1,5 @@
 ﻿using Projector.IO.SocketHelpers;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace Projector.IO.Protocol.CommandHandlers
     {
         Task RegisterConnectedClient(IPEndPoint endPoint, SocketWrapper socketWrapper);
 
-        Task<byte[]> ProcessRequestAsync(byte[] data);
+        Task ProcessRequestAsync(Stream inputStream, Stream outputStream);
 
         Task ClientDiconnected(IPEndPoint endPoint);
     }

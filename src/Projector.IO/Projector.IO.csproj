@@ -52,12 +52,9 @@
     <Compile Include="Protocol\Responses\IResponse.cs" />
     <Compile Include="Protocol\Responses\OkResponse.cs" />
     <Compile Include="SocketHelpers\BufferManager.cs" />
-    <Compile Include="SocketHelpers\DataHolder.cs" />
     <Compile Include="SocketHelpers\DataHoldingUserToken.cs" />
     <Compile Include="SocketHelpers\ISocket.cs" />
-    <Compile Include="SocketHelpers\MessageHandler.cs" />
     <Compile Include="SocketHelpers\MySocket.cs" />
-    <Compile Include="SocketHelpers\PrefixHandler.cs" />
     <Compile Include="Server\Server.cs" />
     <Compile Include="SocketHelpers\ObjectPool.cs" />
     <Compile Include="Server\SocketListener.cs" />

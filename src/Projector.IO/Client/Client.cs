@@ -1,6 +1,7 @@
 ﻿using Projector.IO.Protocol.Commands;
 using Projector.IO.SocketHelpers;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -43,15 +44,7 @@ namespace Projector.IO.Client
                 _theBufferManager.SetBuffer(eventArgObject);
 
                 //We can store data in the UserToken property of SAEA object.
-                var theTempReceiveSendUserToken = new DataHoldingUserToken(eventArgObject.Offset, _socketClientSettings.PrefixLength);
-
-                //We'll have an object that we call DataHolder, that we can remove from
-                //the UserToken when we are finished with it. So, we can hang on to the
-                //DataHolder, pass it to an app, serialize it, or whatever.
-                theTempReceiveSendUserToken.CreateNewDataHolder();
-
-                eventArgObject.UserToken = theTempReceiveSendUserToken;
-
+                eventArgObject.UserToken = new DataHoldingUserToken(eventArgObject.Offset);
 
                 _poolOfRecSendSocketAwaitables.Push(new SocketAwaitable(eventArgObject));
             }
@@ -59,9 +52,12 @@ namespace Projector.IO.Client
 
         public async Task SendCommand(ICommand command)
         {
-
-            await _socketWrapper.SendAsync(command.GetBytes());
-
+            using (var outputStream = new MemoryStream())
+            {
+                var data = command.GetBytes();
+                await outputStream.WriteAsync(data, 0, data.Length);
+                await _socketWrapper.SendAsync(outputStream);
+            }
             _callSync.WaitOne();
 
         }
@@ -80,23 +76,24 @@ namespace Projector.IO.Client
         {
             await Task.Yield();
 
-            while (true)
+            using (var inputStream = new MemoryStream())
             {
-                var data = await _socketWrapper.ReceiveAsync();
-                if (data == null)
+                while (true)
                 {
-                    NotifyClientDiconnected();
-                    return;
-                }
+                    var success = await _socketWrapper.ReceiveAsync(inputStream);
+                    if (!success)
+                    {
+                        NotifyClientDiconnected();
+                        return;
+                    }
 
-                if (data.Length > 0)
-                {
-                    _callSync.Set();
-                }
+                    if (inputStream.Position > 4)
+                    {
+                        _callSync.Set();
+                    }
 
+                }
             }
-
-
         }
 
         public Task DisconnectAsync()
