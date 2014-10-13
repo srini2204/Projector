@@ -1,7 +1,7 @@
-﻿using Projector.IO.Client;
-using Projector.IO.Protocol.Commands;
+﻿using Projector.IO.Protocol.CommandHandlers;
 using Projector.IO.Server;
 using System;
+using System.Net;
 
 namespace Projector.Playground
 {
@@ -9,7 +9,7 @@ namespace Projector.Playground
     {
         static void Main(string[] args)
         {
-            var server = new Server();
+            var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444)), new LogicalServer());
 
             var startedServerTask = server.Start();
 

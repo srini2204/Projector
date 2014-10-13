@@ -9,14 +9,12 @@ namespace Projector.IO.Client
 
         private readonly ConcurrentBag<string> _subscriptions = new ConcurrentBag<string>();
         private readonly Client _client;
+        private bool _connectionInitialized = false;
 
-        public SubscriptionManager()
+        public SubscriptionManager(Client client)
         {
-            _client = new Client();
-
+            _client = client;
             _client.OnClientDisconnected += _client_OnClientDisconnected;
-            _client.ConnectAsync().Wait();
-
         }
 
         async void _client_OnClientDisconnected(object sender, Client.ClientDisconnectedEventArgs e)
@@ -33,6 +31,12 @@ namespace Projector.IO.Client
 
         public async Task Subscribe(string tableName)
         {
+            if (!_connectionInitialized)
+            {
+                await _client.ConnectAsync();
+                _connectionInitialized = true;
+            }
+
             var subscribeCommand = new SubscribeCommand(tableName);
             await _client.SendCommand(subscribeCommand);
             _subscriptions.Add(tableName);

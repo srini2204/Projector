@@ -24,9 +24,9 @@ namespace Projector.IO.Server
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly ILogicalServer _logicalServer;
 
-        public Server()
+        public Server(SocketListenerSettings socketListenerSettings, ILogicalServer logicalServer)
         {
-            _socketListenerSettings = new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444));
+            _socketListenerSettings = socketListenerSettings;
             _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
             _socketListener = new SocketListener();
 
@@ -37,7 +37,7 @@ namespace Projector.IO.Server
 
             _cancellationTokenSource = new CancellationTokenSource();
 
-            _logicalServer = new LogicalServer();
+            _logicalServer = logicalServer;
         }
 
         internal void Init()
@@ -87,33 +87,49 @@ namespace Projector.IO.Server
         private async void StatClientServing(Socket socket)
         {
             await Task.Yield();
-            var socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, new MySocket(socket), 4, 25);
-            await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
 
-            var token = _cancellationTokenSource.Token;
-            var endPoint = (IPEndPoint)socket.RemoteEndPoint;
-            var signaledForStopping = false;
-            using (var inputStream = new MemoryStream())
-            using (var outputStream = new MemoryStream())
+            SocketAwaitable awaitable1 = null;
+            SocketAwaitable awaitable2 = null;
+
+            try
             {
-                while (!token.IsCancellationRequested && !signaledForStopping)
+                awaitable1 = _poolOfRecSendSocketAwaitables.Pop();
+                awaitable2 = _poolOfRecSendSocketAwaitables.Pop();
+
+                var socketWrapper = new SocketWrapper(awaitable1, awaitable2, new MySocket(socket), _socketListenerSettings.BufferSize);
+                await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
+
+                var token = _cancellationTokenSource.Token;
+                var endPoint = (IPEndPoint)socket.RemoteEndPoint;
+                var signaledForStopping = false;
+
+                using (var inputStream = new MemoryStream())
                 {
-                    var success = await socketWrapper.ReceiveAsync(inputStream);
-                    if (success)
+                    while (!token.IsCancellationRequested && !signaledForStopping)
                     {
-                        await _logicalServer.ProcessRequestAsync(inputStream, outputStream);
+                        signaledForStopping = !await socketWrapper.ReceiveAsync(inputStream);
 
-                        signaledForStopping = !await socketWrapper.SendAsync(outputStream);
-
-                    }
-                    else
-                    {
-                        signaledForStopping = true;
+                        if (!signaledForStopping)
+                        {
+                            signaledForStopping = !await _logicalServer.ProcessRequestAsync(socketWrapper, inputStream);
+                        }
                     }
                 }
-            }
 
-            await OnClientDiconnected(endPoint);
+                await OnClientDiconnected(endPoint);
+            }
+            finally
+            {
+                if (awaitable1 != null)
+                {
+                    _poolOfRecSendSocketAwaitables.Push(awaitable1);
+                }
+
+                if (awaitable2 != null)
+                {
+                    _poolOfRecSendSocketAwaitables.Push(awaitable2);
+                }
+            }
         }
 
         private Task OnClientDiconnected(IPEndPoint endPoint)

@@ -2,7 +2,6 @@
 using Projector.IO.SocketHelpers;
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,9 @@ namespace Projector.IO.Client
 
         private readonly SocketConnector _socketConnector;
 
-        private readonly ObjectPool<SocketAwaitable> _poolOfRecSendSocketAwaitables;
+        private SocketAwaitable _sendSocketAwaitable;
+
+        private SocketAwaitable _receiveSocketAwaitable;
 
         private readonly SocketClientSettings _socketClientSettings;
 
@@ -23,31 +24,27 @@ namespace Projector.IO.Client
 
         private AutoResetEvent _callSync = new AutoResetEvent(false);
 
-        public Client()
+        public Client(SocketClientSettings socketClientSettings)
         {
-            _socketClientSettings = new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 10);
+            _socketClientSettings = socketClientSettings;
             _socketConnector = new SocketConnector();
-            _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
 
-            _theBufferManager = new BufferManager(_socketClientSettings.BufferSize * _socketClientSettings.OpsToPreAllocate, _socketClientSettings.BufferSize);
+            _theBufferManager = new BufferManager(_socketClientSettings.BufferSize * 2, _socketClientSettings.BufferSize);
 
-            Init();
-
+            _sendSocketAwaitable = GetSocketAwaitable();
+            _receiveSocketAwaitable = GetSocketAwaitable();
         }
 
-        internal void Init()
+        private SocketAwaitable GetSocketAwaitable()
         {
-            for (var i = 0; i < _socketClientSettings.OpsToPreAllocate; i++)
-            {
-                var eventArgObject = new SocketAsyncEventArgs();
+            var eventArgObject = new SocketAsyncEventArgs();
 
-                _theBufferManager.SetBuffer(eventArgObject);
+            _theBufferManager.SetBuffer(eventArgObject);
 
-                //We can store data in the UserToken property of SAEA object.
-                eventArgObject.UserToken = new DataHoldingUserToken(eventArgObject.Offset);
+            //We can store data in the UserToken property of SAEA object.
+            eventArgObject.UserToken = new DataHoldingUserToken(eventArgObject.Offset);
 
-                _poolOfRecSendSocketAwaitables.Push(new SocketAwaitable(eventArgObject));
-            }
+            return new SocketAwaitable(eventArgObject);
         }
 
         public async Task SendCommand(ICommand command)
@@ -66,7 +63,7 @@ namespace Projector.IO.Client
         {
             var socket = await _socketConnector.ConnectAsync(_socketClientSettings.ServerEndPoint);
 
-            _socketWrapper = new SocketWrapper(_poolOfRecSendSocketAwaitables, new MySocket(socket), _socketClientSettings.PrefixLength, _socketClientSettings.BufferSize);
+            _socketWrapper = new SocketWrapper(_sendSocketAwaitable, _receiveSocketAwaitable, new MySocket(socket), _socketClientSettings.BufferSize);
 
 
             StartReadingMessages();

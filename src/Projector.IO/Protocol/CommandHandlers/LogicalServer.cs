@@ -9,23 +9,25 @@ using System.Timers;
 
 namespace Projector.IO.Protocol.CommandHandlers
 {
-    class LogicalServer : ILogicalServer
+    public class LogicalServer : ILogicalServer
     {
         private static readonly OkResponse OkResponse = new OkResponse();
         private static readonly Heartbeat Heartbeat = new Heartbeat();
 
         private readonly Timer _keepAliveTimer;
+        private readonly Stream _outputStream;
 
         private readonly ConcurrentDictionary<IPEndPoint, SocketWrapper> _clients = new ConcurrentDictionary<IPEndPoint, SocketWrapper>();
 
         public LogicalServer()
         {
+            _outputStream = new MemoryStream();
             _keepAliveTimer = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
             _keepAliveTimer.Elapsed += _keepAliveTimer_Elapsed;
             _keepAliveTimer.Start();
         }
 
-        async void _keepAliveTimer_Elapsed(object sender, ElapsedEventArgs e)
+        void _keepAliveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             foreach (var client in _clients)
             {
@@ -33,9 +35,10 @@ namespace Projector.IO.Protocol.CommandHandlers
             }
         }
 
-        public Task ProcessRequestAsync(Stream inputStream, Stream outputStream)
+        public async Task<bool> ProcessRequestAsync(SocketWrapper clientSocket, Stream inputStream)
         {
-            return outputStream.WriteAsync(OkResponse.GetBytes(), 0, OkResponse.GetBytes().Length);
+            await _outputStream.WriteAsync(OkResponse.GetBytes(), 0, OkResponse.GetBytes().Length);
+            return await clientSocket.SendAsync(_outputStream);
         }
 
 

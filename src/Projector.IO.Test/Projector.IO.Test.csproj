@@ -67,6 +67,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\SocketListenerTest.cs" />
     <Compile Include="SocketHelpers\SocketWrapperTest.cs" />
+    <Compile Include="TestHelpers\TaskExtension.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

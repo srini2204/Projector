@@ -1,6 +1,7 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
 using Projector.IO.SocketHelpers;
+using Projector.IO.Test.TestHelpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,13 +13,12 @@ namespace Projector.IO.Test.SocketHelpers
     [TestFixture]
     class SocketWrapperTest
     {
-        private ObjectPool<SocketAwaitable> _socketEventArgsPool;
         private int _eventArgsBuferSize = 100;
+        private SocketAwaitable _soketAwaitable;
 
         [SetUp]
         public void InitContext()
         {
-            _socketEventArgsPool = new ObjectPool<SocketAwaitable>();
 
             var eventArgs = new SocketAsyncEventArgs();
             eventArgs.SetBuffer(new byte[_eventArgsBuferSize], 0, _eventArgsBuferSize);
@@ -27,9 +27,7 @@ namespace Projector.IO.Test.SocketHelpers
 
             eventArgs.UserToken = theTempReceiveSendUserToken;
 
-            var soketAwaitable = new SocketAwaitable(eventArgs);
-
-            _socketEventArgsPool.Push(soketAwaitable);
+            _soketAwaitable = new SocketAwaitable(eventArgs);
 
         }
 
@@ -62,7 +60,7 @@ namespace Projector.IO.Test.SocketHelpers
             }
             );
 
-            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
 
             using (var stream = new MemoryStream())
             {
@@ -70,13 +68,11 @@ namespace Projector.IO.Test.SocketHelpers
                 var res = await socketWrapper.SendAsync(stream);
 
                 Assert.True(res);
-                iSocket.Received(3).SendAsync(Arg.Any<SocketAwaitable>());
+                iSocket.Received(3).SendAsync(Arg.Any<SocketAwaitable>()).Forget();
                 Assert.AreEqual(3, listBytes.Count);
                 Assert.AreEqual(29, listBytes[0]);
                 Assert.AreEqual(9, listBytes[1]);
                 Assert.AreEqual(5, listBytes[2]);
-
-                Assert.AreEqual(1, _socketEventArgsPool.Count);
             }
         }
 
@@ -95,7 +91,7 @@ namespace Projector.IO.Test.SocketHelpers
             }
             );
 
-            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
 
             using (var stream = new MemoryStream())
             {
@@ -103,11 +99,9 @@ namespace Projector.IO.Test.SocketHelpers
                 var res = await socketWrapper.SendAsync(stream);
 
                 Assert.True(res);
-                iSocket.Received(1).SendAsync(Arg.Any<SocketAwaitable>());
+                iSocket.Received(1).SendAsync(Arg.Any<SocketAwaitable>()).Forget();
                 Assert.AreEqual(1, listBytes.Count);
                 Assert.AreEqual(29, listBytes[0]);
-
-                Assert.AreEqual(1, _socketEventArgsPool.Count);
             }
         }
 
@@ -125,7 +119,7 @@ namespace Projector.IO.Test.SocketHelpers
             }
             );
 
-            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
 
             using (var stream = new MemoryStream())
             {
@@ -133,10 +127,8 @@ namespace Projector.IO.Test.SocketHelpers
                 var res = await socketWrapper.SendAsync(stream);
 
                 Assert.False(res);
-                iSocket.Received(1).SendAsync(Arg.Any<SocketAwaitable>());
+                iSocket.Received(1).SendAsync(Arg.Any<SocketAwaitable>()).Forget();
                 iSocket.Received(1).Close();
-
-                Assert.AreEqual(1, _socketEventArgsPool.Count);
             }
         }
 
@@ -170,7 +162,7 @@ namespace Projector.IO.Test.SocketHelpers
             }
             );
 
-            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
 
             using (var stream = new MemoryStream())
             {
@@ -178,13 +170,11 @@ namespace Projector.IO.Test.SocketHelpers
                 var res = await socketWrapper.SendAsync(stream);
 
                 Assert.True(res);
-                iSocket.Received(3).SendAsync(Arg.Any<SocketAwaitable>());
+                iSocket.Received(3).SendAsync(Arg.Any<SocketAwaitable>()).Forget();
                 Assert.AreEqual(3, listBytes.Count);
                 Assert.AreEqual(100, listBytes[0]);
                 Assert.AreEqual(100, listBytes[1]);
                 Assert.AreEqual(94, listBytes[2]);
-
-                Assert.AreEqual(1, _socketEventArgsPool.Count);
             }
         }
 
@@ -204,17 +194,14 @@ namespace Projector.IO.Test.SocketHelpers
             }
             );
 
-            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
 
             using (var stream = new MemoryStream())
             {
                 var res = await socketWrapper.ReceiveAsync(stream);
 
                 Assert.AreEqual(44, stream.Position);
-                iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>());
-
-
-                Assert.AreEqual(1, _socketEventArgsPool.Count);
+                iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
             }
         }
 
@@ -243,17 +230,14 @@ namespace Projector.IO.Test.SocketHelpers
             }
             );
 
-            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
 
             using (var stream = new MemoryStream())
             {
                 var res = await socketWrapper.ReceiveAsync(stream);
 
                 Assert.AreEqual(44, stream.Position);
-                iSocket.Received(2).ReceiveAsync(Arg.Any<SocketAwaitable>());
-
-
-                Assert.AreEqual(1, _socketEventArgsPool.Count);
+                iSocket.Received(2).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
             }
         }
 
@@ -274,17 +258,14 @@ namespace Projector.IO.Test.SocketHelpers
             }
             );
 
-            var socketWrapper = new SocketWrapper(_socketEventArgsPool, iSocket, 4, _eventArgsBuferSize);
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
 
             using (var stream = new MemoryStream())
             {
                 var res = await socketWrapper.ReceiveAsync(stream);
 
                 Assert.AreEqual(4, stream.Position);
-                iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>());
-
-
-                Assert.AreEqual(1, _socketEventArgsPool.Count);
+                iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
             }
 
         }

@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace Projector.IO.Protocol.CommandHandlers
 {
-    interface ILogicalServer
+    public interface ILogicalServer
     {
         Task RegisterConnectedClient(IPEndPoint endPoint, SocketWrapper socketWrapper);
 
-        Task ProcessRequestAsync(Stream inputStream, Stream outputStream);
+        Task<bool> ProcessRequestAsync(SocketWrapper clientSocket, Stream inputStream);
 
         Task ClientDiconnected(IPEndPoint endPoint);
     }
