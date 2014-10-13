@@ -21,7 +21,6 @@ namespace Projector.IO.SocketHelpers
 
         public async Task<bool> SendAsync(Stream stream)
         {
-
             var sendEventArgs = _sendSocketAwaitable.EventArgs;
 
             var receiveSendToken = (DataHoldingUserToken)sendEventArgs.UserToken;

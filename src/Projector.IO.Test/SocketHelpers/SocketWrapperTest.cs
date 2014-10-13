@@ -128,7 +128,8 @@ namespace Projector.IO.Test.SocketHelpers
 
                 Assert.False(res);
                 iSocket.Received(1).SendAsync(Arg.Any<SocketAwaitable>()).Forget();
-                iSocket.Received(1).Close();
+                iSocket.DidNotReceive().Close();
+                Assert.AreNotEqual(0, stream.Position);
             }
         }
 
@@ -268,6 +269,33 @@ namespace Projector.IO.Test.SocketHelpers
                 iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
             }
 
+        }
+
+        [Test]
+        public async Task TestExceptionDuringReceiveOperation()
+        {
+            var iSocket = Substitute.For<ISocket>();
+
+            iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
+            x =>
+            {
+                var aw = x.Arg<SocketAwaitable>();
+                aw.EventArgs.SocketError = SocketError.OperationAborted;
+                return Task.FromResult(0);
+            }
+            );
+
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
+
+            using (var stream = new MemoryStream())
+            {
+                var res = await socketWrapper.ReceiveAsync(stream);
+
+                Assert.False(res);
+                iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
+                iSocket.DidNotReceive().Close();
+                Assert.AreEqual(0, stream.Position);
+            }
         }
 
         private static byte[] PrepareData(int length)
