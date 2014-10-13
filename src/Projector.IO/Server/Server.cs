@@ -27,6 +27,8 @@ namespace Projector.IO.Server
         public Server(SocketListenerSettings socketListenerSettings, ILogicalServer logicalServer)
         {
             _socketListenerSettings = socketListenerSettings;
+            _logicalServer = logicalServer;
+
             _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
             _socketListener = new SocketListener();
 
@@ -36,8 +38,6 @@ namespace Projector.IO.Server
             Init();
 
             _cancellationTokenSource = new CancellationTokenSource();
-
-            _logicalServer = logicalServer;
         }
 
         internal void Init()

@@ -27,6 +27,8 @@ namespace Projector.IO.Test.Server
 
             Assert.True(taskSocket.IsCompleted, "Task must be completed. The first connector should be here already");
             Assert.NotNull(taskSocket.Result, "Corresponding server socket must not be null");
+
+            socketListener.StopListen();
         }
 
         [Test]

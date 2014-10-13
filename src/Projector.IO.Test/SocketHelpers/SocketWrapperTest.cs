@@ -133,6 +133,20 @@ namespace Projector.IO.Test.SocketHelpers
             }
         }
 
+        [Test]
+        [ExpectedException(typeof(ArgumentException), ExpectedMessage = "Stream position is 0. There is nothing to send")]
+        public async Task TestExceptionDuringZeroBytesSendOperation()
+        {
+            var iSocket = Substitute.For<ISocket>();
+
+            var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
+
+            using (var stream = new MemoryStream())
+            {
+                var res = await socketWrapper.SendAsync(stream);
+            }
+        }
+
 
         [Test]
         public async Task TestSendWhenDataIsBiggerThanBuferThreeIterration()
@@ -237,6 +251,13 @@ namespace Projector.IO.Test.SocketHelpers
             {
                 var res = await socketWrapper.ReceiveAsync(stream);
 
+                Assert.True(res);
+                Assert.AreEqual(24, stream.Position);
+                iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
+
+                res = await socketWrapper.ReceiveAsync(stream);
+
+                Assert.True(res);
                 Assert.AreEqual(44, stream.Position);
                 iSocket.Received(2).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
             }
