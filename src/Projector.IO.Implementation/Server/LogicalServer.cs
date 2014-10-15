@@ -1,4 +1,5 @@
-﻿using Projector.IO.Protocol.Responses;
+﻿using Projector.IO.Implementation.Protocol;
+using Projector.IO.Protocol.CommandHandlers;
 using Projector.IO.SocketHelpers;
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace Projector.IO.Protocol.CommandHandlers
+namespace Projector.IO.Implementation.Server
 {
     public class LogicalServer : ILogicalServer
     {

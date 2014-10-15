@@ -1,7 +1,7 @@
 ﻿
 namespace Projector.IO.Protocol.Responses
 {
-    interface IResponse
+    public interface IResponse
     {
         byte[] GetBytes();
     }

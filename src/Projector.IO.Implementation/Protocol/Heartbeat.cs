@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Projector.IO.Protocol.Responses;
+using System;
 
-namespace Projector.IO.Protocol.Responses
+namespace Projector.IO.Implementation.Protocol
 {
     class Heartbeat : IResponse
     {
@@ -9,7 +10,7 @@ namespace Projector.IO.Protocol.Responses
         public Heartbeat()
         {
             //So, now we convert the length integer into a byte array
-            byte[] arrayOfBytesInPrefix = BitConverter.GetBytes(0);
+            var arrayOfBytesInPrefix = BitConverter.GetBytes(0);
 
             //Create the byte array to send.
             var resultArray = new byte[arrayOfBytesInPrefix.Length];

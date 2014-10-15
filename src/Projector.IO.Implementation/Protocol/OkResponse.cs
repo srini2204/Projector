@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Projector.IO.Protocol.Responses;
+using System;
 using System.Text;
 
-namespace Projector.IO.Protocol.Responses
+namespace Projector.IO.Implementation.Protocol
 {
     public class OkResponse : IResponse
     {
@@ -10,10 +11,10 @@ namespace Projector.IO.Protocol.Responses
         public OkResponse()
         {
             //convert the message to byte array
-            byte[] arrayOfBytesInMessage = Encoding.ASCII.GetBytes("o");
+            var arrayOfBytesInMessage = Encoding.ASCII.GetBytes("o");
 
             //So, now we convert the length integer into a byte array
-            byte[] arrayOfBytesInPrefix = BitConverter.GetBytes(arrayOfBytesInMessage.Length);
+            var arrayOfBytesInPrefix = BitConverter.GetBytes(arrayOfBytesInMessage.Length);
 
             //Create the byte array to send.
             var resultArray = new byte[arrayOfBytesInPrefix.Length + arrayOfBytesInMessage.Length];

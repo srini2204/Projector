@@ -2,22 +2,21 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Client
+namespace Projector.IO.Implementation.Client
 {
     public class SubscriptionManager
     {
-
         private readonly ConcurrentBag<string> _subscriptions = new ConcurrentBag<string>();
-        private readonly Client _client;
+        private readonly Projector.IO.Client.Client _client;
         private bool _connectionInitialized = false;
 
-        public SubscriptionManager(Client client)
+        public SubscriptionManager(Projector.IO.Client.Client client)
         {
             _client = client;
             _client.OnClientDisconnected += _client_OnClientDisconnected;
         }
 
-        async void _client_OnClientDisconnected(object sender, Client.ClientDisconnectedEventArgs e)
+        async void _client_OnClientDisconnected(object sender, Projector.IO.Client.Client.ClientDisconnectedEventArgs e)
         {
             await Task.Delay(10000);
             await _client.ConnectAsync();
