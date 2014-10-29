@@ -1,5 +1,4 @@
-﻿using Moq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Projector.Data.Test
 {
@@ -9,7 +8,7 @@ namespace Projector.Data.Test
         [SetUp]
         public void InitContext()
         {
-            var _dataConsumer = new Mock<IDataConsumer>();
+
 
         }
 

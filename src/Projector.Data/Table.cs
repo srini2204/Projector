@@ -1,119 +1,96 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
-using System.Reflection;
-
 namespace Projector.Data
 {
-    public class Table<TRow> : IDataProvider
+    public class Table : IDataProvider
     {
-        private readonly Dictionary<string, List<object>> _data = new Dictionary<string, List<object>>();
-        private readonly Dictionary<string, long> _keyToIdIndex = new Dictionary<string, long>();
+        private readonly ISchema _schema;
 
-        private readonly Func<TRow, string> _keySelector;
+        private int _currentRowIndex = -1;
 
-        private readonly PropertyInfo[] _rowProperties;
+        private readonly List<int> _usedIndecies;
 
+        private readonly List<int> _idsAdded;
+
+        private readonly List<int> _idsDeleted;
+
+        private readonly List<int> _idsUpdated;
 
         private IDataConsumer _consumer;
 
-        private readonly long[] _addIds = new long[1024];
-        private long _addIndex;
-
-        private readonly long[] _deleteIds = new long[1024];
-        private long _deleteIndex;
-
-        private readonly ISchema _schema;
-
-        public Table()
+        public Table(ISchema schema)
         {
-
+            _idsAdded = new List<int>();
+            _idsDeleted = new List<int>();
+            _idsUpdated = new List<int>();
+            _usedIndecies = new List<int>();
+            _schema = schema;
         }
 
-        public Table(Func<TRow, string> keySelector)
+        public void Set<T>(int rowIndex, string name, T value)
         {
-            _keySelector = keySelector;
-            _rowProperties = typeof(TRow).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-            foreach (var property in _rowProperties)
-            {
-                _data.Add(property.Name, new List<object>());
-            }
-
-            _schema = new Schema(_data);
+            var writableField = _schema.GetWritableField<T>(rowIndex, name);
+            writableField.SetValue(value);
         }
 
-
-        public void Subscribe(IDataConsumer consumer)
+        public int NewRow()
         {
-            _consumer = consumer;
-            CatchUp();
+            _currentRowIndex++;
+            _usedIndecies.Add(_currentRowIndex);
+            _idsAdded.Add(_currentRowIndex);
+            return _currentRowIndex;
         }
 
-        private void CatchUp()
+        public void RemoveRow(int rowIndex)
         {
-            _consumer.OnSchema(_schema);
-            foreach (var id in _keyToIdIndex.Values)
-            {
-                _addIds[_addIndex] = id;
-                _addIndex++;
-            }
-
-            if (_addIndex > 0)
-            {
-                _consumer.OnAdd(_addIds, _addIndex);
-            }
-            _consumer.OnSyncPoint();
-            _addIndex = 0;
-        }
-
-        public long Add(TRow item)
-        {
-            long id;
-            var key = _keySelector(item);
-            if (!_keyToIdIndex.TryGetValue(key, out id))
-            {
-                foreach (var property in _rowProperties)
-                {
-                    var columnList = _data[property.Name];
-                    columnList.Add(property.GetValue(item));
-                    id = columnList.Count - 1;
-                }
-
-                _addIds[_addIndex] = id;
-                _addIndex++;
-                _keyToIdIndex.Add(key, id);
-            }
-
-            return id;
-        }
-        public void Update(TRow item) { }
-        public void Delete(TRow item)
-        {
-            long id;
-            var key = _keySelector(item);
-            if (_keyToIdIndex.TryGetValue(key, out id))
-            {
-                _deleteIds[_deleteIndex] = id;
-                _deleteIndex++;
-                _keyToIdIndex.Remove(key);
-            }
+            _usedIndecies.Remove(rowIndex);
+            _idsDeleted.Add(rowIndex);
         }
 
         public void FireChanges()
         {
-            if (_consumer != null)
+            var anyChanges = false;
+
+            if (_idsAdded.Count > 0)
             {
-                _consumer.OnAdd(_addIds, _addIndex);
-                _addIndex = 0;
-                _consumer.OnDelete(_deleteIds, _deleteIndex);
-                _deleteIndex = 0;
-                _consumer.OnSyncPoint();
+                _consumer.OnAdd(_idsAdded.AsReadOnly());
+                _idsAdded.Clear();
+                anyChanges = true;
             }
 
+            if (_idsUpdated.Count > 0)
+            {
+                _consumer.OnUpdate(_idsUpdated.AsReadOnly(), new List<IField>());
+                _idsUpdated.Clear();
+                anyChanges = true;
+            }
 
-            _addIndex = 0;
-            _deleteIndex = 0;
+            if (_idsDeleted.Count > 0)
+            {
+                _consumer.OnDelete(_idsDeleted.AsReadOnly());
+                _idsDeleted.Clear();
+                anyChanges = true;
+            }
+
+            if (anyChanges)
+            {
+                _consumer.OnSyncPoint();
+            }
         }
+
+        public void AddConsumer(IDataConsumer consumer)
+        {
+            _consumer = consumer;
+            _consumer.OnSchema(_schema);
+
+            if (_usedIndecies.Count > 0)
+            {
+                _consumer.OnAdd(_usedIndecies.AsReadOnly());
+            }
+
+            _consumer.OnSyncPoint();
+        }
+
 
     }
 }

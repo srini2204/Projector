@@ -5,13 +5,16 @@ namespace Projector.Data
 {
     public class Schema : ISchema
     {
-        private readonly Dictionary<string, List<object>> _data;
+        private readonly Dictionary<string, IField> _data;
+        private readonly int _capacity;
 
-        public Schema(Dictionary<string, List<object>> data)
+        public Schema(int capacity)
         {
-            _data = data;
+            _capacity = capacity;
+            _data = new Dictionary<string, IField>();
         }
-        public List<object> Columns
+
+        public List<IField> Columns
         {
             get { throw new NotImplementedException(); }
         }
@@ -19,13 +22,34 @@ namespace Projector.Data
 
         public IField<T> GetField<T>(int id, string name)
         {
-            List<object> column;
-            if (_data.TryGetValue(name, out column))
+            IField field;
+            if (_data.TryGetValue(name, out field))
             {
-                return new Field<T>(column, id);
+                field.SetCurrentRow(id);
+                return (IField<T>)field;
 
             }
             throw new InvalidOperationException("Can't find column name: '" + name + "'");
         }
+
+        public IWritableField<T> GetWritableField<T>(int id, string name)
+        {
+            IField field;
+            if (_data.TryGetValue(name, out field))
+            {
+                field.SetCurrentRow(id);
+                return (IWritableField<T>)field;
+
+            }
+            throw new InvalidOperationException("Can't find column name: '" + name + "'");
+        }
+
+        public void CreateField<T>(string name)
+        {
+            var field = new Field<T>(new List<T>(_capacity));
+            _data.Add(name, field);
+        }
+
+
     }
 }

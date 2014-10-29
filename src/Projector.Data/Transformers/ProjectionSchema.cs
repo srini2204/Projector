@@ -10,12 +10,19 @@ namespace Projector.Data.Transformers
 
         }
 
-        public List<object> Columns
+
+
+        public List<IField> Columns
         {
             get { throw new NotImplementedException(); }
         }
 
         public IField<T> GetField<T>(int id, string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IWritableField<T> GetWritableField<T>(int id, string name)
         {
             throw new NotImplementedException();
         }

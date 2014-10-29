@@ -1,8 +1,10 @@
-﻿using Projector.IO.Implementation.Protocol;
+﻿using Projector.Data;
+using Projector.IO.Implementation.Protocol;
 using Projector.IO.Protocol.CommandHandlers;
 using Projector.IO.SocketHelpers;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -15,6 +17,8 @@ namespace Projector.IO.Implementation.Server
         private static readonly OkResponse OkResponse = new OkResponse();
         private static readonly Heartbeat Heartbeat = new Heartbeat();
 
+        private Dictionary<string, IDataProvider> _tables;
+
         private readonly Timer _keepAliveTimer;
         private readonly Stream _outputStream;
 
@@ -23,6 +27,7 @@ namespace Projector.IO.Implementation.Server
         public LogicalServer()
         {
             _outputStream = new MemoryStream();
+            _tables = new Dictionary<string, IDataProvider>();
             _keepAliveTimer = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
             _keepAliveTimer.Elapsed += _keepAliveTimer_Elapsed;
             _keepAliveTimer.Start();

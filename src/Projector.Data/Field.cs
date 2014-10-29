@@ -1,21 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Projector.Data
 {
-    class Field<T> : IField<T>
+    public class Field<TData> : IField<TData>, IWritableField<TData>
     {
-        private readonly List<object> _data;
-        private readonly int _id;
+        private int _id;
+        private List<TData> _data;
 
-        public Field(List<object> data, int id)
+        public Field(List<TData> data)
         {
             _data = data;
-            _id = id;
         }
 
-        public T GetValue()
+        public Type DataType
         {
-            return (T) _data[_id];
+            get { return typeof(TData); }
+        }
+
+        void IField.SetCurrentRow(int rowId)
+        {
+            _id = rowId;
+        }
+
+        public TData Value
+        {
+            get
+            {
+                return _data[_id];
+            }
+        }
+
+        void IWritableField<TData>.SetValue(TData value)
+        {
+            _data[_id] = value;
         }
     }
 }

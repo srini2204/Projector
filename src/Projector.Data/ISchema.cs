@@ -4,8 +4,10 @@ namespace Projector.Data
 {
     public interface ISchema
     {
-        List<object> Columns { get; }
+        List<IField> Columns { get; }
 
         IField<T> GetField<T>(int id, string name);
+
+        IWritableField<T> GetWritableField<T>(int id, string name);
     }
 }
