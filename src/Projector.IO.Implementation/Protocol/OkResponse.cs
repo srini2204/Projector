@@ -27,6 +27,7 @@ namespace Projector.IO.Implementation.Protocol
         public byte[] GetBytes()
         {
             return _data;
+
         }
     }
 }

@@ -50,6 +50,8 @@
     <Compile Include="Protocol\SchemaEvent.cs" />
     <Compile Include="Protocol\SubscribeCommand.cs" />
     <Compile Include="Server\LogicalServer.cs" />
+    <Compile Include="Server\NetworkAdapter.cs" />
+    <Compile Include="Utils\ByteBlader.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Projector.Data\Projector.Data.csproj">

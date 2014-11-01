@@ -33,6 +33,11 @@ namespace Projector.IO.Implementation.Server
             _keepAliveTimer.Start();
         }
 
+        public void Publish(string tableName, IDataProvider dataProvider)
+        {
+            _tables.Add(tableName, dataProvider);
+        }
+
         void _keepAliveTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             foreach (var client in _clients)
