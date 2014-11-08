@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
 using Projector.IO.Implementation.Utils;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Projector.IO.Implementation.Test.Utils
@@ -7,25 +9,6 @@ namespace Projector.IO.Implementation.Test.Utils
     [TestFixture]
     class CircularStreamTest
     {
-        [Test]
-        public async Task TestReadAsync()
-        {
-            var circularStream = new CircularStream();
-            var buffer = new byte[10];
-            var bytesReadTask = circularStream.ReadAsync(buffer, 0, 10);
-
-            Assert.IsFalse(bytesReadTask.IsCompleted);
-            Assert.IsFalse(bytesReadTask.IsFaulted);
-
-            var bufferWrite = new byte[5];
-
-            circularStream.Write(bufferWrite, 0, 5);
-
-            var bytesRead = await bytesReadTask;
-
-            Assert.AreEqual(5, bytesRead);
-        }
-
         [Test]
         public void TestWriteWithoutMemoryExtension()
         {
@@ -72,7 +55,7 @@ namespace Projector.IO.Implementation.Test.Utils
             var bytesRead = circularStream.Read(readBuffer, 0, 10);
 
             Assert.AreEqual(10, bytesRead);
-            Assert.IsTrue(IsBytesArrayDataOk(readBuffer, 10), "Bytes we read seems to be not OK");
+            Assert.IsTrue(AreBytesArraysEqual(readBuffer, writeBuffer, 10), "Bytes we read seems to be not OK");
             Assert.AreEqual(5, circularStream.Length);
             Assert.AreEqual(100, circularStream.Capacity);
         }
@@ -90,7 +73,7 @@ namespace Projector.IO.Implementation.Test.Utils
             var bytesRead = circularStream.Read(readBuffer, 0, 10);
 
             Assert.AreEqual(10, bytesRead);
-            Assert.IsTrue(IsBytesArrayDataOk(readBuffer, 10), "Bytes we read seems to be not OK");
+            Assert.IsTrue(AreBytesArraysEqual(readBuffer, writeBuffer, 10), "Bytes we read seems to be not OK");
             Assert.AreEqual(5, circularStream.Length);
             Assert.AreEqual(100, circularStream.Capacity);
 
@@ -106,7 +89,7 @@ namespace Projector.IO.Implementation.Test.Utils
             bytesRead = circularStream.Read(readBuffer, 10, 100);
 
             Assert.AreEqual(100, bytesRead);
-            Assert.IsTrue(IsBytesArrayDataOk(readBuffer, 110), "Bytes we read seems to be not OK");
+            Assert.IsTrue(AreBytesArraysEqual(readBuffer, writeBuffer, 110), "Bytes we read seems to be not OK");
             Assert.AreEqual(0, circularStream.Length);
             Assert.AreEqual(100, circularStream.Capacity);
         }
@@ -127,7 +110,7 @@ namespace Projector.IO.Implementation.Test.Utils
                 var bytesRead = circularStream.Read(readBuffer, i * 16, 16);
 
                 Assert.AreEqual(16, bytesRead);
-                Assert.IsTrue(IsBytesArrayDataOk(readBuffer, i * 16), "Bytes we read seems to be not OK");
+                Assert.IsTrue(AreBytesArraysEqual(readBuffer, writeBuffer, i * 16), "Bytes we read seems to be not OK");
                 Assert.AreEqual(0, circularStream.Length);
                 Assert.AreEqual(256, circularStream.Capacity);
             }
@@ -148,7 +131,7 @@ namespace Projector.IO.Implementation.Test.Utils
                 var bytesRead = circularStream.Read(readBuffer, i * 4, 4);
 
                 Assert.AreEqual(4, bytesRead);
-                Assert.IsTrue(IsBytesArrayDataOk(readBuffer, i * 4), "Bytes we read seems to be not OK");
+                Assert.IsTrue(AreBytesArraysEqual(readBuffer, writeBuffer, i * 4), "Bytes we read seems to be not OK");
                 Assert.AreEqual((i + 1) * 8 - (i + 1) * 4, circularStream.Length);
 
             }
@@ -192,25 +175,71 @@ namespace Projector.IO.Implementation.Test.Utils
             taskWrite.Wait();
             taskRead.Wait();
 
-            Assert.IsTrue(IsBytesArrayDataOk(readBuffer, bytesToRead), "Bytes we read seems to be not OK");
+            Assert.IsTrue(AreBytesArraysEqual(readBuffer, writeBuffer, bytesToRead), "Bytes we read seems to be not OK");
+        }
+
+        [Test]
+        public async Task TestWaitForDataThenWrite()
+        {
+            var circularStream = new CircularStream(100);
+            var bytesToWrite = 100;
+
+            var writeBuffer = GetBytesArray(bytesToWrite);
+
+            // wait for data when no data yet arrived
+            var taskWait = circularStream.WaitForData();
+
+            Assert.False(taskWait.IsCompleted);
+            Assert.AreEqual(0, circularStream.Length);
+
+            // write which has to notify
+            circularStream.Write(writeBuffer, 0, 25);
+
+            await taskWait;
+
+            Assert.True(taskWait.IsCompleted);
+            Assert.AreEqual(25, circularStream.Length);
+        }
+
+        [Test]
+        public async Task TestWriteThenWaitForData()
+        {
+            var circularStream = new CircularStream(100);
+            var bytesToWrite = 100;
+
+            var writeBuffer = GetBytesArray(bytesToWrite);
+
+            // write data while no one is waitng
+            circularStream.Write(writeBuffer, 0, 25);
+
+            var threadName = Thread.CurrentThread.Name;
+
+            // wait for data when there are data inside
+            await circularStream.WaitForData();
+
+            Assert.AreEqual(threadName, Thread.CurrentThread.Name, "There shouldn't be rescheduling");
+            Assert.AreEqual(25, circularStream.Length);
         }
 
         private static byte[] GetBytesArray(int count)
         {
             var byteArray = new byte[count];
+
+            var r = new Random();
+
             for (int i = 0; i < count; i++)
             {
-                byteArray[i] = (byte)i;
+                byteArray[i] = (byte)r.Next(0, 255);
             }
 
             return byteArray;
         }
 
-        private static bool IsBytesArrayDataOk(byte[] byteArray, int count)
+        private static bool AreBytesArraysEqual(byte[] sourceByteArray, byte[] destByteArray, int count)
         {
             for (int i = 0; i < count; i++)
             {
-                if (byteArray[i] != (byte)i)
+                if (sourceByteArray[i] != destByteArray[i])
                 {
                     return false;
                 }

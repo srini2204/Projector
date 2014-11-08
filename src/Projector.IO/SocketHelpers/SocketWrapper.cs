@@ -22,11 +22,6 @@ namespace Projector.IO.SocketHelpers
 
         public async Task<bool> SendAsync(Stream stream)
         {
-            if (stream.Position == 0)
-            {
-                throw new ArgumentException("Stream position is 0. There is nothing to send");
-            }
-
             var sendEventArgs = _sendSocketAwaitable.EventArgs;
 
             var receiveSendToken = (DataHoldingUserToken)sendEventArgs.UserToken;

@@ -8,7 +8,7 @@ namespace Projector.IO.Implementation.Utils
 {
     public class CircularStream : Stream
     {
-        private TaskCompletionSource<int> _taskCompletionSource;
+        private ReusableTaskCompletionSource<int> _taskCompletionSource;
         private byte[] _buffer;
 
         private bool _isOpen;
@@ -19,6 +19,10 @@ namespace Projector.IO.Implementation.Utils
 
         //0 for false, 1 for true. 
         private long _resourceSync = 0;
+
+        // _readWriteBalance < 0 means there are free awaiters and not enough items.
+        // _readWriteBalance > 0 means the opposite is true.
+        private int _readWriteBalance = 0;
 
         public CircularStream()
             : this(0)
@@ -37,6 +41,7 @@ namespace Projector.IO.Implementation.Utils
             _buffer = new byte[capacity];
             _capacity = capacity;
             _isOpen = true;
+            _taskCompletionSource = new ReusableTaskCompletionSource<int>();
         }
 
         public override bool CanRead
@@ -61,7 +66,7 @@ namespace Projector.IO.Implementation.Utils
 
         public override long Length
         {
-            get { return Thread.VolatileRead(ref _size); }
+            get { return Volatile.Read(ref _size); }
         }
 
         public override long Position
@@ -88,6 +93,8 @@ namespace Projector.IO.Implementation.Utils
                 throw new ArgumentException("Not enough bytes in the buffer");
             Contract.EndContractBlock();
 
+            var someoneIsWaiting = (Interlocked.Exchange(ref _readWriteBalance, 1) != 0); // means on the othe side someone is waiting
+
             //if (!_isOpen) __Error.StreamIsClosed();
             //if (!CanWrite) __Error.WriteNotSupported();
 
@@ -96,7 +103,7 @@ namespace Projector.IO.Implementation.Utils
             if (i < 0)
                 throw new IOException("Stream is too long");
 
-            var size = Thread.VolatileRead(ref _size);
+            var size = Length;
             if (count > _capacity - size)
             {
                 if (Interlocked.Exchange(ref _resourceSync, 1) != 0)
@@ -137,10 +144,12 @@ namespace Projector.IO.Implementation.Utils
 
             Interlocked.Add(ref _size, count);
 
-
-
-            if (_taskCompletionSource != null)
+            if (someoneIsWaiting)
+            {
                 _taskCompletionSource.SetResult(count);
+            }
+
+            Interlocked.Exchange(ref _readWriteBalance, 0);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -168,7 +177,7 @@ namespace Projector.IO.Implementation.Utils
             }
 
 
-            int bytesToRead = Thread.VolatileRead(ref _size);
+            int bytesToRead = (int)Length;
 
             if (bytesToRead > count)
             {
@@ -219,7 +228,26 @@ namespace Projector.IO.Implementation.Utils
             throw new NotImplementedException();
         }
 
-
+        public async Task WaitForData()
+        {
+            _taskCompletionSource.Reset();
+            var someoneIsWriting = (Interlocked.Exchange(ref _readWriteBalance, 1) != 0); // means on the othe side someone is writing
+            if (someoneIsWriting) // data will be ready pretty soon
+            {
+                var spinWait = new SpinWait();
+                while (Length == 0)
+                {
+                    spinWait.SpinOnce();
+                }
+            }
+            else
+            {
+                if (Length == 0)
+                {
+                    await _taskCompletionSource;
+                }
+            }
+        }
 
         private static void CopyBuffer(byte[] src, int srcOffset, byte[] dst, int dstOffset, int count)
         {
@@ -234,21 +262,6 @@ namespace Projector.IO.Implementation.Utils
             else
             {
                 Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
-            }
-        }
-
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-        {
-            var bytes = await base.ReadAsync(buffer, offset, count, cancellationToken);
-            if (bytes > 0)
-            {
-                return bytes;
-            }
-            else
-            {
-                _taskCompletionSource = new TaskCompletionSource<int>();
-                var bytesArrived = await _taskCompletionSource.Task;
-                return await base.ReadAsync(buffer, offset, count, cancellationToken);
             }
         }
 
@@ -274,6 +287,8 @@ namespace Projector.IO.Implementation.Utils
         }
 
 
+
+
         public virtual int Capacity
         {
             get
@@ -294,7 +309,7 @@ namespace Projector.IO.Implementation.Utils
                         var buffer = new byte[value];
                         //we need to copy everything into the new buffer
 
-                        int bytesToRead = Thread.VolatileRead(ref _size);
+                        int bytesToRead = (int)Length;
 
                         if (bytesToRead > 0)
                         {

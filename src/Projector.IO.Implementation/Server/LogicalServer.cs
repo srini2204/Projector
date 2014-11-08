@@ -1,5 +1,6 @@
 ﻿using Projector.Data;
 using Projector.IO.Implementation.Protocol;
+using Projector.IO.Implementation.Utils;
 using Projector.IO.Protocol.CommandHandlers;
 using Projector.IO.SocketHelpers;
 using System;
@@ -57,7 +58,26 @@ namespace Projector.IO.Implementation.Server
         public Task RegisterConnectedClient(IPEndPoint endPoint, SocketWrapper socketWrapper)
         {
             _clients.TryAdd(endPoint, socketWrapper);
+            var outputStream = new CircularStream(1000 * 1024);
+            StartSendingLoop(socketWrapper, outputStream);
             return Task.FromResult(0);
+        }
+
+        private async void StartSendingLoop(SocketWrapper clientSocket, CircularStream outputStream)
+        {
+            await Task.Yield();
+
+            while (true)
+            {
+                if (outputStream.Length == 0)
+                {
+                    await outputStream.WaitForData();
+                }
+
+                await clientSocket.SendAsync(_outputStream);
+            }
+
+
         }
 
         public Task ClientDiconnected(IPEndPoint endPoint)

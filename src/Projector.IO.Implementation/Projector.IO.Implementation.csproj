@@ -53,6 +53,7 @@
     <Compile Include="Server\NetworkAdapter.cs" />
     <Compile Include="Utils\ByteBlader.cs" />
     <Compile Include="Utils\CircularStream.cs" />
+    <Compile Include="Utils\ReusableTaskCompletionSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Projector.Data\Projector.Data.csproj">
