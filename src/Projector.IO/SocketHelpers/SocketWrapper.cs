@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -116,5 +115,7 @@ namespace Projector.IO.SocketHelpers
             _socket.Close();
 
         }
+
+        public object Token { get; set; }
     }
 }

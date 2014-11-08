@@ -3,22 +3,22 @@ namespace Projector.IO.Implementation.Protocol
 {
     static class Constants
     {
-        static class MessageType
+        public static class MessageType
         {
-            static byte Subscribe = (byte)'+';
-            static byte Unsubscribe = (byte)'-';
-            static byte Schema = (byte)'s';
-            static byte RowAdded = (byte)'a';
-            static byte RowUpdated = (byte)'u';
-            static byte RowDeleted = (byte)'d';
-            static byte SyncPoint = (byte)'p';
+            public static byte Subscribe = (byte)'+';
+            public static byte Unsubscribe = (byte)'-';
+            public static byte Schema = (byte)'s';
+            public static byte RowAdded = (byte)'a';
+            public static byte RowUpdated = (byte)'u';
+            public static byte RowDeleted = (byte)'d';
+            public static byte SyncPoint = (byte)'p';
         }
 
-        static class FieldType
+        public static class FieldType
         {
-            static byte Int = 0;
-            static byte Long = 1;
-            static byte String = 2;
+            public static byte Int = 0;
+            public static byte Long = 1;
+            public static byte String = 2;
         }
     }
 }

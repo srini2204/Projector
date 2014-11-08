@@ -53,6 +53,7 @@ namespace Projector.IO.Client
             {
                 var data = command.GetBytes();
                 await outputStream.WriteAsync(data, 0, data.Length);
+                outputStream.Position = 0;
                 await _socketWrapper.SendAsync(outputStream);
             }
             _callSync.WaitOne();

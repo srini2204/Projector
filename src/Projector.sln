@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projector.IO.Implementation
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projector.IO.Implementation.Test", "Projector.IO.Implementation.Test\Projector.IO.Implementation.Test.csproj", "{91978678-E3C3-4999-B1A6-6A15CCE9AB04}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projector.Collections", "Projector.Collections\Projector.Collections.csproj", "{64D57CE0-67F9-46B6-98B6-9C0A0B69613C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{91978678-E3C3-4999-B1A6-6A15CCE9AB04}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91978678-E3C3-4999-B1A6-6A15CCE9AB04}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91978678-E3C3-4999-B1A6-6A15CCE9AB04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64D57CE0-67F9-46B6-98B6-9C0A0B69613C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64D57CE0-67F9-46B6-98B6-9C0A0B69613C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64D57CE0-67F9-46B6-98B6-9C0A0B69613C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64D57CE0-67F9-46B6-98B6-9C0A0B69613C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

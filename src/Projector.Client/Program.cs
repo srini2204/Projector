@@ -14,6 +14,7 @@ namespace Projector.Client
             var client = new Projector.IO.Client.Client(new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 25, 10));
 
             var subscriptionManager = new SubscriptionManager(client);
+            Console.WriteLine("Connected. Press any key...");
 
             while (Console.ReadKey().Key == ConsoleKey.Spacebar)
             {
@@ -24,7 +25,7 @@ namespace Projector.Client
             }
 
 
-            Console.WriteLine("Connected. Press any key...");
+            
             Console.ReadKey();
         }
     }

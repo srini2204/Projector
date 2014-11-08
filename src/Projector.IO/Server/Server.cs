@@ -107,10 +107,12 @@ namespace Projector.IO.Server
                 {
                     while (!token.IsCancellationRequested && !signaledForStopping)
                     {
+                        var positionBeforeReading = inputStream.Position;
                         signaledForStopping = !await socketWrapper.ReceiveAsync(inputStream);
 
                         if (!signaledForStopping)
                         {
+                            inputStream.Position = positionBeforeReading;
                             signaledForStopping = !await _logicalServer.ProcessRequestAsync(socketWrapper, inputStream);
                         }
                     }

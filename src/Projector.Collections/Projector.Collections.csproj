@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7ADA17FE-24F5-4CD7-AFA6-DC9F431FAF11}</ProjectGuid>
+    <ProjectGuid>{64D57CE0-67F9-46B6-98B6-9C0A0B69613C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Projector.IO.Implementation</RootNamespace>
-    <AssemblyName>Projector.IO.Implementation</AssemblyName>
+    <RootNamespace>Projector.Collections</RootNamespace>
+    <AssemblyName>Projector.Collections</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -39,39 +39,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\SubscriptionManager.cs" />
+    <Compile Include="AsyncCollection.cs" />
+    <Compile Include="CompletionSourceAwaiter.cs" />
+    <Compile Include="IAsyncCollection.cs" />
+    <Compile Include="IAwaiter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protocol\Constants.cs" />
-    <Compile Include="Protocol\Heartbeat.cs" />
-    <Compile Include="Protocol\OkResponse.cs" />
-    <Compile Include="Protocol\RowAddedEvent.cs" />
-    <Compile Include="Protocol\RowDeletedEvent.cs" />
-    <Compile Include="Protocol\RowUpdatedEvent.cs" />
-    <Compile Include="Protocol\SchemaEvent.cs" />
-    <Compile Include="Protocol\SubscribeCommand.cs" />
-    <Compile Include="Server\LogicalServer.cs" />
-    <Compile Include="Server\NetworkAdapter.cs" />
-    <Compile Include="Utils\ByteBlader.cs" />
-    <Compile Include="Utils\CircularStream.cs" />
-    <Compile Include="Utils\ISyncLoop.cs" />
-    <Compile Include="Utils\ReusableTaskCompletionSource.cs" />
-    <Compile Include="Utils\SyncLoop.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Projector.Collections\Projector.Collections.csproj">
-      <Project>{64d57ce0-67f9-46b6-98b6-9c0a0b69613c}</Project>
-      <Name>Projector.Collections</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Projector.Data\Projector.Data.csproj">
-      <Project>{c85a7f90-567c-49fe-8d9c-03c1c544078d}</Project>
-      <Name>Projector.Data</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Projector.IO\Projector.IO.csproj">
-      <Project>{5741250f-9706-4503-8536-dee6fa8f48e2}</Project>
-      <Name>Projector.IO</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
