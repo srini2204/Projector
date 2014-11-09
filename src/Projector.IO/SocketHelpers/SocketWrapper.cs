@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Projector.IO.SocketHelpers
 {
-    public class SocketWrapper
+    public class SocketWrapper : Projector.IO.SocketHelpers.ISocketReaderWriter
     {
         private readonly SocketAwaitable _sendSocketAwaitable;
         private readonly SocketAwaitable _receiveSocketAwaitable;

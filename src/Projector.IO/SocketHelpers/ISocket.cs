@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace Projector.IO.SocketHelpers
@@ -14,5 +16,7 @@ namespace Projector.IO.SocketHelpers
         Task SendAsync(SocketAwaitable awaitable);
 
         Task DisconnectAsync(SocketAwaitable awaitable);
+
+        EndPoint RemoteEndPoint { get; }
     }
 }

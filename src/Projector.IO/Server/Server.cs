@@ -14,7 +14,7 @@ namespace Projector.IO.Server
     {
         private readonly BufferManager _theBufferManager;
 
-        private readonly SocketListener _socketListener;
+        private readonly ISocketListener _socketListener;
 
         private readonly ConcurrentDictionary<IPEndPoint, SocketWrapper> _clients = new ConcurrentDictionary<IPEndPoint, SocketWrapper>();
 
@@ -24,13 +24,13 @@ namespace Projector.IO.Server
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly ILogicalServer _logicalServer;
 
-        public Server(SocketListenerSettings socketListenerSettings, ILogicalServer logicalServer)
+        public Server(SocketListenerSettings socketListenerSettings, ILogicalServer logicalServer, ISocketListener socketListenere)
         {
             _socketListenerSettings = socketListenerSettings;
             _logicalServer = logicalServer;
 
             _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
-            _socketListener = new SocketListener();
+            _socketListener = socketListenere;
 
             _theBufferManager = new BufferManager(_socketListenerSettings.BufferSize * _socketListenerSettings.NumberOfSaeaForRecSend * _socketListenerSettings.OpsToPreAllocate,
             _socketListenerSettings.BufferSize * _socketListenerSettings.OpsToPreAllocate);
@@ -64,10 +64,12 @@ namespace Projector.IO.Server
             {
                 var socket = await _socketListener.TakeNewClient();
 
-                if (socket != null)
+                if (socket == null)
                 {
-                    StatClientServing(socket);
+                    break; // notified for stopping
                 }
+
+                StatClientServing(socket);
             }
 
             var taskList = new List<Task>();
@@ -82,9 +84,11 @@ namespace Projector.IO.Server
             {
                 await Task.Delay(100);
             }
+
+            await _logicalServer.Stop();
         }
 
-        private async void StatClientServing(Socket socket)
+        private async void StatClientServing(ISocket socket)
         {
             await Task.Yield();
 
@@ -96,7 +100,7 @@ namespace Projector.IO.Server
                 awaitable1 = _poolOfRecSendSocketAwaitables.Pop();
                 awaitable2 = _poolOfRecSendSocketAwaitables.Pop();
 
-                var socketWrapper = new SocketWrapper(awaitable1, awaitable2, new MySocket(socket), _socketListenerSettings.BufferSize);
+                var socketWrapper = new SocketWrapper(awaitable1, awaitable2, socket, _socketListenerSettings.BufferSize);
                 await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
 
                 var token = _cancellationTokenSource.Token;

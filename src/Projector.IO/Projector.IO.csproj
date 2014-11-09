@@ -46,9 +46,11 @@
     <Compile Include="Protocol\CommandHandlers\ILogicalServer.cs" />
     <Compile Include="Protocol\Commands\ICommand.cs" />
     <Compile Include="Protocol\Responses\IResponse.cs" />
+    <Compile Include="Server\ISocketListener.cs" />
     <Compile Include="SocketHelpers\BufferManager.cs" />
     <Compile Include="SocketHelpers\DataHoldingUserToken.cs" />
     <Compile Include="SocketHelpers\ISocket.cs" />
+    <Compile Include="SocketHelpers\ISocketReaderWriter.cs" />
     <Compile Include="SocketHelpers\MySocket.cs" />
     <Compile Include="Server\Server.cs" />
     <Compile Include="SocketHelpers\ObjectPool.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -58,6 +59,12 @@ namespace Projector.IO.SocketHelpers
 
             await awaitable;
             awaitable.BytesTransferred = awaitable.EventArgs.BytesTransferred;
+        }
+
+
+        public EndPoint RemoteEndPoint
+        {
+            get { return _socket.RemoteEndPoint; }
         }
     }
 }

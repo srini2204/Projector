@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Projector.IO.Server
 {
 
-    public class SocketListener
+    public class SocketListener : ISocketListener
     {
         #region Private fields
 
@@ -31,7 +31,7 @@ namespace Projector.IO.Server
             _listenSocket.Listen(backlog);
         }
 
-        public async Task<Socket> TakeNewClient()
+        public async Task<ISocket> TakeNewClient()
         {
             await _listenSocket.AcceptAsync(_acceptSocketAwaitable);
 
@@ -46,7 +46,7 @@ namespace Projector.IO.Server
             var clientSocket = _acceptSocketAwaitable.EventArgs.AcceptSocket;
             _acceptSocketAwaitable.EventArgs.AcceptSocket = null;
 
-            return clientSocket;
+            return new MySocket(clientSocket);
         }
 
         public void StopListen()

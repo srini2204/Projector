@@ -10,7 +10,7 @@ namespace Projector.Playground
     {
         static void Main(string[] args)
         {
-            var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444)), new LogicalServer(new SyncLoop()));
+            var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444)), new LogicalServer(new SyncLoop()), new SocketListener());
 
             var startedServerTask = server.Start();
 

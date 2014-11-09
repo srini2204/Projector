@@ -7,10 +7,12 @@ namespace Projector.IO.Protocol.CommandHandlers
 {
     public interface ILogicalServer
     {
-        Task RegisterConnectedClient(IPEndPoint endPoint, SocketWrapper socketWrapper);
+        Task RegisterConnectedClient(IPEndPoint endPoint, ISocketReaderWriter clientSocketReaderWriter);
 
-        Task<bool> ProcessRequestAsync(SocketWrapper clientSocket, Stream inputStream);
+        Task<bool> ProcessRequestAsync(ISocketReaderWriter clientSocketReaderWriter, Stream inputStream);
 
         Task ClientDiconnected(IPEndPoint endPoint);
+
+        Task Stop();
     }
 }

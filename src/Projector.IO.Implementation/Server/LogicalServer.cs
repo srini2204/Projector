@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -21,18 +22,22 @@ namespace Projector.IO.Implementation.Server
 
         private Dictionary<string, IDataProvider> _tables;
 
-        private readonly Timer _keepAliveTimer;
+        private readonly System.Timers.Timer _keepAliveTimer;
 
-        private readonly ConcurrentDictionary<IPEndPoint, SocketWrapper> _clients = new ConcurrentDictionary<IPEndPoint, SocketWrapper>();
+        private readonly ConcurrentDictionary<IPEndPoint, ISocketReaderWriter> _clients;
 
         private readonly ISyncLoop _syncLoop;
+
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
 
         public LogicalServer(ISyncLoop syncLoop)
         {
             _syncLoop = syncLoop;
+            _cancellationTokenSource = new CancellationTokenSource();
             _tables = new Dictionary<string, IDataProvider>();
-            _keepAliveTimer = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
+            _clients = new ConcurrentDictionary<IPEndPoint, ISocketReaderWriter>();
+            _keepAliveTimer = new System.Timers.Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
             _keepAliveTimer.Elapsed += _keepAliveTimer_Elapsed;
             _keepAliveTimer.Start();
         }
@@ -54,14 +59,14 @@ namespace Projector.IO.Implementation.Server
             }
         }
 
-        public async Task<bool> ProcessRequestAsync(SocketWrapper clientSocket, Stream inputStream)
+        public async Task<bool> ProcessRequestAsync(ISocketReaderWriter clientSocketReaderWriter, Stream inputStream)
         {
-            var clientOutputStream = (Stream)clientSocket.Token;
+            var clientOutputStream = (Stream)clientSocketReaderWriter.Token;
             await ParseRequest(inputStream, clientOutputStream);
             return true;
         }
 
-        private  async Task ParseRequest(Stream inputStream, Stream outputStream)
+        private async Task ParseRequest(Stream inputStream, Stream outputStream)
         {
             if (inputStream.Length >= 4)
             {
@@ -78,7 +83,7 @@ namespace Projector.IO.Implementation.Server
                         await _syncLoop.Run(() =>
                             {
                                 IDataProvider dataProvider;
-                                if(_tables.TryGetValue(tableName, out dataProvider))
+                                if (_tables.TryGetValue(tableName, out dataProvider))
                                 {
                                     outputStream.WriteAsync(OkResponse.GetBytes(), 0, OkResponse.GetBytes().Length);
                                 }
@@ -104,30 +109,31 @@ namespace Projector.IO.Implementation.Server
 
 
 
-        public Task RegisterConnectedClient(IPEndPoint endPoint, SocketWrapper socketWrapper)
+        public Task RegisterConnectedClient(IPEndPoint endPoint, ISocketReaderWriter clientSocketReaderWriter)
         {
-            _clients.TryAdd(endPoint, socketWrapper);
+            _clients.TryAdd(endPoint, clientSocketReaderWriter);
             var outputStream = new CircularStream(1000 * 1024);
 
-            socketWrapper.Token = outputStream;
+            clientSocketReaderWriter.Token = outputStream;
 
 
-            StartSendingLoop(socketWrapper, outputStream);
+            StartSendingLoop(clientSocketReaderWriter, outputStream);
             return Task.FromResult(0);
         }
 
-        private async void StartSendingLoop(SocketWrapper clientSocket, CircularStream outputStream)
+        private async void StartSendingLoop(ISocketReaderWriter clientSocketReaderWriter, CircularStream outputStream)
         {
             await Task.Yield();
+            var token = _cancellationTokenSource.Token;
 
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 if (outputStream.Length == 0)
                 {
                     await outputStream.WaitForData();
                 }
 
-                await clientSocket.SendAsync(outputStream);
+                await clientSocketReaderWriter.SendAsync(outputStream);
             }
 
 
@@ -135,8 +141,15 @@ namespace Projector.IO.Implementation.Server
 
         public Task ClientDiconnected(IPEndPoint endPoint)
         {
-            SocketWrapper socketWrapper;
-            _clients.TryRemove(endPoint, out socketWrapper);
+            ISocketReaderWriter clientSocketReaderWriter;
+            _clients.TryRemove(endPoint, out clientSocketReaderWriter);
+            return Task.FromResult(0);
+        }
+
+
+        public Task Stop()
+        {
+            _cancellationTokenSource.Cancel();
             return Task.FromResult(0);
         }
     }
