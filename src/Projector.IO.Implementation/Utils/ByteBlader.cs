@@ -53,5 +53,15 @@ namespace Projector.IO.Implementation.Utils
         {
             throw new NotImplementedException();
         }
+
+        public static void WriteByte(Stream stream, byte b)
+        {
+            stream.WriteByte(b);
+        }
+
+        internal static void WriteBytes(MemoryStream stream, byte[] bytesArray)
+        {
+            stream.Write(bytesArray, 0, bytesArray.Length);
+        }
     }
 }

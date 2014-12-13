@@ -12,7 +12,7 @@ namespace Projector.IO.Implementation.Utils
 
         public SyncLoop()
         {
-            _actionQueue =  new AsyncCollection<Action>(new ConcurrentQueue<Action>());
+            _actionQueue = new AsyncCollection<Action>(new ConcurrentQueue<Action>());
         }
 
         public async Task StartProcessActions(CancellationToken cancellationToken)
@@ -24,11 +24,10 @@ namespace Projector.IO.Implementation.Utils
             }
         }
 
-        public async  Task Run(Action action)
+        public async Task Run(Action action)
         {
             var complectionSource = new ReusableTaskCompletionSource<int>();
-            _actionQueue.Add(()=>
-                
+            _actionQueue.Add(() =>
                 {
                     action();
                     complectionSource.SetResult(0);

@@ -7,10 +7,12 @@ namespace Projector.Data
     {
         private int _id;
         private List<TData> _data;
+        private readonly string _name;
 
-        public Field(List<TData> data)
+        public Field(List<TData> data, string name)
         {
             _data = data;
+            _name = name;
         }
 
         public Type DataType
@@ -34,6 +36,12 @@ namespace Projector.Data
         void IWritableField<TData>.SetValue(TData value)
         {
             _data[_id] = value;
+        }
+
+
+        public string Name
+        {
+            get { return _name; }
         }
     }
 }

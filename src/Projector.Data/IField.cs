@@ -7,6 +7,8 @@ namespace Projector.Data
     {
         Type DataType { get; }
 
+        string Name { get; }
+
         void SetCurrentRow(int rowId);
     }
 

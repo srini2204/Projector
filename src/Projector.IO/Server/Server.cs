@@ -1,8 +1,6 @@
 ﻿using Projector.IO.Protocol.CommandHandlers;
 using Projector.IO.SocketHelpers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -69,26 +67,13 @@ namespace Projector.IO.Server
                     break; // notified for stopping
                 }
 
-                StatClientServing(socket);
-            }
-
-            var taskList = new List<Task>();
-            foreach (var socket in _clients)
-            {
-                taskList.Add(socket.Value.DisconnectAsync());
-            }
-
-            await Task.WhenAll(taskList);
-
-            while (!_clients.IsEmpty)
-            {
-                await Task.Delay(100);
+                StartClientServing(socket);
             }
 
             await _logicalServer.Stop();
         }
 
-        private async void StatClientServing(ISocket socket)
+        private async void StartClientServing(ISocket socket)
         {
             await Task.Yield();
 
@@ -103,26 +88,7 @@ namespace Projector.IO.Server
                 var socketWrapper = new SocketWrapper(awaitable1, awaitable2, socket, _socketListenerSettings.BufferSize);
                 await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
 
-                var token = _cancellationTokenSource.Token;
-                var endPoint = (IPEndPoint)socket.RemoteEndPoint;
-                var signaledForStopping = false;
 
-                using (var inputStream = new MemoryStream())
-                {
-                    while (!token.IsCancellationRequested && !signaledForStopping)
-                    {
-                        var positionBeforeReading = inputStream.Position;
-                        signaledForStopping = !await socketWrapper.ReceiveAsync(inputStream);
-
-                        if (!signaledForStopping)
-                        {
-                            inputStream.Position = positionBeforeReading;
-                            signaledForStopping = !await _logicalServer.ProcessRequestAsync(socketWrapper, inputStream);
-                        }
-                    }
-                }
-
-                await OnClientDiconnected(endPoint);
             }
             finally
             {
@@ -138,12 +104,7 @@ namespace Projector.IO.Server
             }
         }
 
-        private Task OnClientDiconnected(IPEndPoint endPoint)
-        {
-            SocketWrapper socketWrapper;
-            _clients.TryRemove(endPoint, out socketWrapper);
-            return _logicalServer.ClientDiconnected(endPoint);
-        }
+
 
         private Task OnClientConnected(IPEndPoint endPoint, SocketWrapper socketWrapper)
         {

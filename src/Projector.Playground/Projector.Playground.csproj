@@ -48,6 +48,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Projector.Data\Projector.Data.csproj">
+      <Project>{c85a7f90-567c-49fe-8d9c-03c1c544078d}</Project>
+      <Name>Projector.Data</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Projector.IO.Implementation\Projector.IO.Implementation.csproj">
       <Project>{7ada17fe-24f5-4cd7-afa6-dc9f431faf11}</Project>
       <Name>Projector.IO.Implementation</Name>

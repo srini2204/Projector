@@ -12,6 +12,7 @@ namespace Projector.IO.Implementation.Protocol
             public static byte RowUpdated = (byte)'u';
             public static byte RowDeleted = (byte)'d';
             public static byte SyncPoint = (byte)'p';
+            public static byte Ok = (byte)'o';
         }
 
         public static class FieldType

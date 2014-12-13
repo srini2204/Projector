@@ -42,12 +42,7 @@
     <Compile Include="Client\SubscriptionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\Constants.cs" />
-    <Compile Include="Protocol\Heartbeat.cs" />
-    <Compile Include="Protocol\OkResponse.cs" />
-    <Compile Include="Protocol\RowAddedEvent.cs" />
-    <Compile Include="Protocol\RowDeletedEvent.cs" />
-    <Compile Include="Protocol\RowUpdatedEvent.cs" />
-    <Compile Include="Protocol\SchemaEvent.cs" />
+    <Compile Include="Protocol\MessageComposer.cs" />
     <Compile Include="Protocol\SubscribeCommand.cs" />
     <Compile Include="Server\LogicalServer.cs" />
     <Compile Include="Server\NetworkAdapter.cs" />
