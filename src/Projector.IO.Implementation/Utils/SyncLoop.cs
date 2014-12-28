@@ -20,6 +20,7 @@ namespace Projector.IO.Implementation.Utils
             while (!cancellationToken.IsCancellationRequested)
             {
                 var action = await _actionQueue.TakeAsync();
+
                 action();
             }
         }
@@ -29,7 +30,14 @@ namespace Projector.IO.Implementation.Utils
             var complectionSource = new ReusableTaskCompletionSource<int>();
             _actionQueue.Add(() =>
                 {
-                    action();
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception e)
+                    {
+                        complectionSource.SetException(e);
+                    }
                     complectionSource.SetResult(0);
                 });
             await complectionSource;

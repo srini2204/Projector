@@ -13,6 +13,7 @@ namespace Projector.IO.Implementation.Utils
         internal bool WasCompleted;
         internal Action Continuation;
         private TResult _result;
+        private Exception _exception;
 
         public void SetResult(TResult result)
         {
@@ -37,6 +38,7 @@ namespace Projector.IO.Implementation.Utils
         {
             WasCompleted = false;
             Continuation = null;
+            _exception = null;
         }
 
         public ReusableTaskCompletionSource<TResult> GetAwaiter() { return this; }
@@ -45,8 +47,17 @@ namespace Projector.IO.Implementation.Utils
 
         public TResult GetResult()
         {
+            if (_exception!=null)
+            {
+                throw _exception;
+            }
             return _result;
         }
 
+
+        public void SetException(Exception e)
+        {
+            _exception = e;
+        }
     }
 }

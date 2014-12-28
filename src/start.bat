@@ -1,0 +1,1 @@
+Projector.Playground\bin\Debug\Projector.Playground.exe

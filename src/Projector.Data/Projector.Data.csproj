@@ -39,11 +39,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Disconnectable.cs" />
     <Compile Include="Field.cs" />
     <Compile Include="Filters\Filter.cs" />
     <Compile Include="Filters\IFilterCriteria.cs" />
     <Compile Include="IDataConsumer.cs" />
     <Compile Include="IDataProvider.cs" />
+    <Compile Include="IDisconnectable.cs" />
     <Compile Include="IField.cs" />
     <Compile Include="ISchema.cs" />
     <Compile Include="Schema.cs" />

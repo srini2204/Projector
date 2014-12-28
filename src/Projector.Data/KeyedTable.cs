@@ -26,5 +26,15 @@ namespace Projector.Data
 
 
 
+
+        IDisconnectable IDataProvider.AddConsumer(IDataConsumer consumer)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void RemoveConsumer(IDataConsumer consumer)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -35,7 +35,14 @@ namespace Projector.Data
 
         void IWritableField<TData>.SetValue(TData value)
         {
-            _data[_id] = value;
+            if(_id>=_data.Count)
+            {
+                _data.Add(value);
+            }
+            else
+            {
+                _data[_id] = value;
+            }
         }
 
 

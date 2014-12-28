@@ -1,10 +1,16 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace Projector.IO.Implementation.Utils
 {
     public static class ByteBlader
     {
+        public static byte ReadByte(Stream stream)
+        {
+            return (byte)stream.ReadByte();
+        }
+
         public static int ReadInt32(Stream stream)
         {
             return (stream.ReadByte()
@@ -44,9 +50,12 @@ namespace Projector.IO.Implementation.Utils
             stream.WriteByte((byte)(value >> 56));
         }
 
-        public static string ReadString(Stream stream)
+        public static string ReadString(Stream stream,int length)
         {
-            throw new NotImplementedException();
+            var byteArray = new byte[length];
+
+            stream.Read(byteArray, 0, length);
+            return Encoding.ASCII.GetString(byteArray);
         }
 
         public static void WriteString(Stream stream, string value)
@@ -59,7 +68,7 @@ namespace Projector.IO.Implementation.Utils
             stream.WriteByte(b);
         }
 
-        internal static void WriteBytes(MemoryStream stream, byte[] bytesArray)
+        public static void WriteBytes(Stream stream, byte[] bytesArray)
         {
             stream.Write(bytesArray, 0, bytesArray.Length);
         }

@@ -21,24 +21,7 @@ namespace Projector.IO.Implementation.Server
 
         public void OnAdd(IList<int> ids)
         {
-            foreach (var id in ids)
-            {
-                foreach (var field in _schema.Columns)
-                {
-                    if (field.DataType == typeof(int))
-                    {
-                        var iField = _schema.GetField<int>(id, "");
-                    }
-                    else if (field.DataType == typeof(long))
-                    {
-                        var iField = _schema.GetField<long>(id, "");
-                    }
-                    else if (field.DataType == typeof(string))
-                    {
-                        var iField = _schema.GetField<string>(id, "");
-                    }
-                }
-            }
+            MessageComposer.WriteRowAddedMessage(_stream, _subscriptionId, ids, _schema);
         }
 
         public void OnUpdate(IList<int> ids, IList<IField> updatedFields)

@@ -1,0 +1,1 @@
+Projector.Client\bin\Debug\Projector.Client.exe

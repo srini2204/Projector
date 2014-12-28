@@ -5,6 +5,7 @@ using Projector.IO.Server;
 using System;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Projector.Playground
 {
@@ -15,26 +16,51 @@ namespace Projector.Playground
             var syncLoop = new SyncLoop();
             var syncLoopTask = syncLoop.StartProcessActions(CancellationToken.None);
             var logicalServer = new LogicalServer(syncLoop);
-            var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 25, 10, new IPEndPoint(IPAddress.Any, 4444)), logicalServer, new SocketListener());
+            var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 1024*8, 8, new IPEndPoint(IPAddress.Any, 4444)), logicalServer, new SocketListener());
 
-            var schema = new Schema(10);
-            schema.CreateField<int>("TestInt");
+            var schema = new Schema(50000);
+            schema.CreateField<int>("Age");
+            schema.CreateField<string>("Name");
+            schema.CreateField<long>("Time");
 
             var table = new Table(schema);
-            logicalServer.Publish("table1",table);
+            logicalServer.Publish("table1", table);
 
             var startedServerTask = server.Start();
 
-            //var subscribeCommand = new SubscribeCommand("table1");
-            //var client = new Client();
-            //client.ConnectAsync().Wait();
+            Task.Run(async () =>
+            {
+                await syncLoop.Run(() =>
+                {
+                    for (int i = 0; i < 50000; i++)
+                    {
+                        var rowId1 = table.NewRow();
+                        table.Set<int>(rowId1, "Age", i);
+                        table.Set<string>(rowId1, "Name", "Max" + i);
+                        table.Set<long>(rowId1, "Time", 125000+i);
+                    }
 
-            //for (int i = 0; i < 100000; i++)
-            //{
-            //   client.SendCommand(subscribeCommand).Wait();
-            //}
+                    table.FireChanges();
 
-            //server.Stop();
+                    Console.WriteLine("Published");
+                });
+
+                while (true)
+                {
+                    await Task.Delay(500);
+                    await syncLoop.Run(() =>
+                        {
+                            var rowId1 = table.NewRow();
+                            table.Set<int>(rowId1, "Age", 25);
+                            table.Set<string>(rowId1, "Name", "Max");
+                            table.Set<long>(rowId1, "Time", 125000);
+
+
+                            table.FireChanges();
+                        });
+
+                }
+            });
 
             startedServerTask.Wait();
             syncLoopTask.Wait();

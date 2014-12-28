@@ -1,9 +1,7 @@
-﻿using Projector.IO.Protocol.Commands;
-using Projector.IO.SocketHelpers;
+﻿using Projector.IO.SocketHelpers;
 using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Projector.IO.Client
@@ -21,8 +19,6 @@ namespace Projector.IO.Client
         private readonly SocketClientSettings _socketClientSettings;
 
         private SocketWrapper _socketWrapper;
-
-        private AutoResetEvent _callSync = new AutoResetEvent(false);
 
         public Client(SocketClientSettings socketClientSettings)
         {
@@ -47,17 +43,9 @@ namespace Projector.IO.Client
             return new SocketAwaitable(eventArgObject);
         }
 
-        public async Task SendCommand(ICommand command)
+        public async Task SendCommand(Stream stream)
         {
-            using (var outputStream = new MemoryStream())
-            {
-                var data = command.GetBytes();
-                await outputStream.WriteAsync(data, 0, data.Length);
-                outputStream.Position = 0;
-                await _socketWrapper.SendAsync(outputStream);
-            }
-            _callSync.WaitOne();
-
+            await _socketWrapper.SendAsync(stream);
         }
 
         public async Task ConnectAsync()
@@ -65,33 +53,16 @@ namespace Projector.IO.Client
             var socket = await _socketConnector.ConnectAsync(_socketClientSettings.ServerEndPoint);
 
             _socketWrapper = new SocketWrapper(_sendSocketAwaitable, _receiveSocketAwaitable, new MySocket(socket), _socketClientSettings.BufferSize);
-
-
-            StartReadingMessages();
         }
 
-        private async void StartReadingMessages()
+        public async Task<bool> ReadAsync(Stream stream)
         {
-            await Task.Yield();
-
-            using (var inputStream = new MemoryStream())
+            var success = await _socketWrapper.ReceiveAsync(stream);
+            if (!success)
             {
-                while (true)
-                {
-                    var success = await _socketWrapper.ReceiveAsync(inputStream);
-                    if (!success)
-                    {
-                        NotifyClientDiconnected();
-                        return;
-                    }
-
-                    if (inputStream.Position > 4)
-                    {
-                        _callSync.Set();
-                    }
-
-                }
+                NotifyClientDiconnected();
             }
+            return success;
         }
 
         public Task DisconnectAsync()
@@ -112,8 +83,6 @@ namespace Projector.IO.Client
         }
 
         #endregion
-
-
 
         public class ClientDisconnectedEventArgs : EventArgs
         {

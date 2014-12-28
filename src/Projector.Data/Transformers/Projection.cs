@@ -43,5 +43,15 @@ namespace Projector.Data.Transformers
         {
             throw new NotImplementedException();
         }
+
+        IDisconnectable IDataProvider.AddConsumer(IDataConsumer consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveConsumer(IDataConsumer consumer)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
