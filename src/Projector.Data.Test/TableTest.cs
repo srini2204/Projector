@@ -1,75 +1,178 @@
-﻿using Moq;
+﻿using NSubstitute;
 using NUnit.Framework;
-using Projector.Data.Test.Helpers;
+using System.Collections.Generic;
 
 namespace Projector.Data.Test
 {
     [TestFixture]
     public class TableTest
     {
-        private Mock<IDataConsumer> _dataConsumer;
+        private IDataConsumer _mockDataConsumer;
+        private ISchema _mockSchema;
 
+        private Table _table;
         [SetUp]
         public void InitContext()
         {
-            _dataConsumer = new Mock<IDataConsumer>();
-
+            _mockDataConsumer = Substitute.For<IDataConsumer>();
+            _mockSchema = Substitute.For<ISchema>();
+            _table = new Table(_mockSchema);
         }
 
         [Test]
         public void TestSubscribeWhenZeroRowsInside()
         {
-            var table = new Table<Client>(item => item.Id.ToString());
-            table.Subscribe(_dataConsumer.Object);
+            _table.AddConsumer(_mockDataConsumer);
 
-            _dataConsumer.Verify(x => x.OnSchema(It.IsAny<ISchema>()), Times.Once);
-            _dataConsumer.Verify(x => x.OnAdd(It.IsAny<long[]>(), It.IsAny<long>()), Times.Never);
-            _dataConsumer.Verify(x => x.OnUpdate(It.IsAny<long[]>(), It.IsAny<long>()), Times.Never);
-            _dataConsumer.Verify(x => x.OnDelete(It.IsAny<long[]>(), It.IsAny<long>()), Times.Never);
-            _dataConsumer.Verify(x => x.OnSyncPoint(), Times.Once);
+
+            _mockDataConsumer.Received(1).OnSchema(_mockSchema);
+            _mockDataConsumer.DidNotReceive().OnAdd(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.Received(1).OnSyncPoint();
         }
 
         [Test]
         public void TestSubscribeWhenSeveralRowsInside()
         {
-            var table = new Table<Client>(item => item.Id.ToString());
-            table.Add(new Client { Id = 123, Name = "John Doe" });
-            table.Add(new Client { Id = 124, Name = "John Doe" });
-            table.Add(new Client { Id = 125, Name = "John Doe" });
-            table.FireChanges();
-            table.Subscribe(_dataConsumer.Object);
+            _table.NewRow();
 
-            _dataConsumer.Verify(x => x.OnSchema(It.IsAny<ISchema>()), Times.Once);
-            _dataConsumer.Verify(x => x.OnAdd(
-                                            It.Is<long[]>(ids => ids[0] == 0 
-                                                                && ids[1] == 1
-                                                                && ids[2] == 2),
-                                            It.Is<long>(count => count == 3)),
-                                            Times.Once);
-            _dataConsumer.Verify(x => x.OnUpdate(It.IsAny<long[]>(), It.IsAny<long>()), Times.Never);
-            _dataConsumer.Verify(x => x.OnDelete(It.IsAny<long[]>(), It.IsAny<long>()), Times.Never);
-            _dataConsumer.Verify(x => x.OnSyncPoint(), Times.Once);
+            _table.AddConsumer(_mockDataConsumer);
+
+
+            _mockDataConsumer.Received(1).OnSchema(_mockSchema);
+            _mockDataConsumer.Received(1).OnAdd(Arg.Is<IList<int>>(list => list.Count == 1 && list[0] == 0));
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.Received(1).OnSyncPoint();
         }
 
         [Test]
-        public void AddTest()
+        public void AddNewRowWithoutFireChangesTest()
         {
-            var table = new Table<Client>(item => item.Id.ToString());
-            var id = table.Add(new Client { Id = 123, Name = "John Doe" });
+            _table.AddConsumer(_mockDataConsumer);
+
+            _mockDataConsumer.ClearReceivedCalls();
+
+            _table.NewRow();
+
+            _mockDataConsumer.DidNotReceive().OnSchema(Arg.Any<ISchema>());
+            _mockDataConsumer.DidNotReceive().OnAdd(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnSyncPoint();
         }
 
         [Test]
-        public void DeleteTest()
+        public void AddNewRowWithFireChangesTest()
         {
-            var table = new Table<Client>(item => item.Id.ToString());
-            var id = table.Add(new Client { Id = 123, Name = "John Doe" });
+            var args = new List<int>();
+            _table.AddConsumer(_mockDataConsumer);
+
+            _mockDataConsumer.ClearReceivedCalls();
+
+            _mockDataConsumer.OnAdd(Arg.Do<IList<int>>(list => args.AddRange(list)));
+
+            _table.NewRow();
+
+            _table.FireChanges();
+
+            _mockDataConsumer.DidNotReceive().OnSchema(Arg.Any<ISchema>());
+            _mockDataConsumer.Received(1).OnAdd(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.Received(1).OnSyncPoint();
+
+            Assert.AreEqual(1, args.Count);
+            Assert.AreEqual(0, args[0]);
+
+        }
+
+
+        [Test]
+        public void DeleteRowWithoutFireChangesTest()
+        {
+            _table.AddConsumer(_mockDataConsumer);
+
+            _table.NewRow();
+
+            _mockDataConsumer.ClearReceivedCalls();
+
+            _table.RemoveRow(0);
+
+            _mockDataConsumer.DidNotReceive().OnSchema(Arg.Any<ISchema>());
+            _mockDataConsumer.DidNotReceive().OnAdd(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnSyncPoint();
         }
 
         [Test]
-        public void FireChangesTest()
+        public void DeleteRowWithFireChangesTest()
         {
-            var table = new Table<Client>(item => item.Id.ToString());
-            var id = table.Add(new Client { Id = 123, Name = "John Doe" });
+            var args = new List<int>();
+
+            _table.AddConsumer(_mockDataConsumer);
+
+            _table.NewRow();
+
+            _table.FireChanges();
+
+            _mockDataConsumer.ClearReceivedCalls();
+
+            _mockDataConsumer.OnDelete(Arg.Do<IList<int>>(list => args.AddRange(list)));
+
+            _table.RemoveRow(0);
+
+            _table.FireChanges();
+
+            _mockDataConsumer.DidNotReceive().OnSchema(Arg.Any<ISchema>());
+            _mockDataConsumer.DidNotReceive().OnAdd(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.Received(1).OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.Received(1).OnSyncPoint();
+
+            Assert.AreEqual(1, args.Count);
+            Assert.AreEqual(0, args[0]);
+        }
+
+
+        [Test]
+        public void FireChangesWithoutActualChangesTest()
+        {
+            _table.AddConsumer(_mockDataConsumer);
+
+            _mockDataConsumer.ClearReceivedCalls();
+
+            _table.FireChanges();
+
+            _mockDataConsumer.DidNotReceive().OnSchema(Arg.Any<ISchema>());
+            _mockDataConsumer.DidNotReceive().OnAdd(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnSyncPoint();
+        }
+
+        [Test]
+        public void FireChangesSeveralTimesTest()
+        {
+            _table.AddConsumer(_mockDataConsumer);
+
+            _mockDataConsumer.ClearReceivedCalls();
+
+            _table.NewRow();
+
+            _table.FireChanges();
+
+            _mockDataConsumer.ClearReceivedCalls();
+
+            _table.FireChanges(); // we are testing this one
+
+            _mockDataConsumer.DidNotReceive().OnSchema(Arg.Any<ISchema>());
+            _mockDataConsumer.DidNotReceive().OnAdd(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
+            _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
+            _mockDataConsumer.DidNotReceive().OnSyncPoint();
         }
     }
 }

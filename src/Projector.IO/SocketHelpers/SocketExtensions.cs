@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 
 namespace Projector.IO.SocketHelpers
 {
@@ -6,52 +7,33 @@ namespace Projector.IO.SocketHelpers
     {
         public static SocketAwaitable ReceiveAsync(this Socket socket, SocketAwaitable awaitable)
         {
-            awaitable.Reset();
-            if (!socket.ReceiveAsync(awaitable.EventArgs))
-            {
-                awaitable.WasCompleted = true;
-            }
-
-            return awaitable;
+            return DoInvoke(socket.ReceiveAsync, awaitable);
         }
 
         public static SocketAwaitable SendAsync(this Socket socket, SocketAwaitable awaitable)
         {
-            awaitable.Reset();
-            if (!socket.SendAsync(awaitable.EventArgs))
-            {
-                awaitable.WasCompleted = true;
-            }
-
-            return awaitable;
+            return DoInvoke(socket.SendAsync, awaitable);
         }
 
         public static SocketAwaitable AcceptAsync(this Socket socket, SocketAwaitable awaitable)
         {
-            awaitable.Reset();
-            if (!socket.AcceptAsync(awaitable.EventArgs))
-            {
-                awaitable.WasCompleted = true;
-            }
-
-            return awaitable;
+            return DoInvoke(socket.AcceptAsync, awaitable);
         }
 
         public static SocketAwaitable ConnectAsync(this Socket socket, SocketAwaitable awaitable)
         {
-            awaitable.Reset();
-            if (!socket.ConnectAsync(awaitable.EventArgs))
-            {
-                awaitable.WasCompleted = true;
-            }
-
-            return awaitable;
+            return DoInvoke(socket.ConnectAsync, awaitable);
         }
 
         public static SocketAwaitable DisconnectAsync(this Socket socket, SocketAwaitable awaitable)
         {
+            return DoInvoke(socket.DisconnectAsync, awaitable);
+        }
+
+        private static SocketAwaitable DoInvoke(Func<SocketAsyncEventArgs, bool> socketAsyncFunc, SocketAwaitable awaitable)
+        {
             awaitable.Reset();
-            if (!socket.DisconnectAsync(awaitable.EventArgs))
+            if (!socketAsyncFunc(awaitable.EventArgs))
             {
                 awaitable.WasCompleted = true;
             }

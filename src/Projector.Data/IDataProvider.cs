@@ -3,6 +3,7 @@ namespace Projector.Data
 {
     public interface IDataProvider
     {
-        void Subscribe(IDataConsumer consumer);
+        IDisconnectable AddConsumer(IDataConsumer consumer);
+        void RemoveConsumer(IDataConsumer consumer);
     }
 }

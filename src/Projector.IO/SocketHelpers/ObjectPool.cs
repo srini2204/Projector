@@ -1,49 +1,39 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
+using System.Collections.Concurrent;
 
 namespace Projector.IO.SocketHelpers
 {
-    internal sealed class ObjectPool<T>
+    public sealed class ObjectPool<T>
     {
-        private int nextTokenId = 0;
+        private readonly ConcurrentStack<T> _pool;
 
-        private Stack<T> _pool;
-
-        internal ObjectPool(int capacity)
+        public ObjectPool()
         {
-            _pool = new Stack<T>(capacity);
+            _pool = new ConcurrentStack<T>();
         }
 
-        internal int Count
+        public int Count
         {
             get { return _pool.Count; }
         }
 
-        internal int AssignTokenId()
+        public T Pop()
         {
-            int tokenId = Interlocked.Increment(ref nextTokenId);
-            return tokenId;
+            T item;
+            _pool.TryPop(out item);
+
+            return item;
+
         }
 
-        internal T Pop()
-        {
-            lock (_pool)
-            {
-                return _pool.Pop();
-            }
-        }
-
-        internal void Push(T item)
+        public void Push(T item)
         {
             if (item == null)
             {
-                throw new ArgumentNullException("Items added to a SocketAsyncEventArgsPool cannot be null");
+                throw new ArgumentNullException("Items added to a Pool cannot be null");
             }
-            lock (_pool)
-            {
-                _pool.Push(item);
-            }
+
+            _pool.Push(item);
         }
     }
 }

@@ -7,20 +7,16 @@ namespace Projector.IO.Server
         public SocketListenerSettings(int maxConnections,
                                         int excessSaeaObjectsInPool,
                                         int backlog,
-                                        int maxSimultaneousAcceptOps,
-                                        int receivePrefixLength,
-                                        int receiveBufferSize,
-                                        int sendPrefixLength,
+                                        int prefixLength,
+                                        int bufferSize,
                                         int opsToPreAlloc,
                                         IPEndPoint theLocalEndPoint)
         {
             MaxConnections = maxConnections;
             NumberOfSaeaForRecSend = MaxConnections + excessSaeaObjectsInPool;
             Backlog = backlog;
-            MaxAcceptOps = maxSimultaneousAcceptOps;
-            ReceivePrefixLength = receivePrefixLength;
-            BufferSize = receiveBufferSize;
-            SendPrefixLength = sendPrefixLength;
+            PrefixLength = prefixLength;
+            BufferSize = bufferSize;
             OpsToPreAllocate = opsToPreAlloc;
             LocalEndPoint = theLocalEndPoint;
         }
@@ -41,24 +37,14 @@ namespace Projector.IO.Server
         public int Backlog { get; private set; }
 
         /// <summary>
-        /// Tells us how many objects to put in pool for accept operations
-        /// </summary>
-        public int MaxAcceptOps { get; private set; }
-
-        /// <summary>
         /// Length of message prefix for receive ops
         /// </summary>
-        public int ReceivePrefixLength { get; private set; }
+        public int PrefixLength { get; private set; }
 
         /// <summary>
-        /// Buffer size to use for each socket receive operation
+        /// Buffer size to use for each socket operation
         /// </summary>
         public int BufferSize { get; private set; }
-
-        /// <summary>
-        /// Length of message prefix for send ops
-        /// </summary>
-        public int SendPrefixLength { get; private set; }
 
         /// <summary>
         /// See comments in buffer manager

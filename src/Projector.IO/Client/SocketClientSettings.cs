@@ -4,18 +4,16 @@ namespace Projector.IO.Client
 {
     public class SocketClientSettings
     {
-        public SocketClientSettings(IPEndPoint theServerEndPoint, int receivePrefixLength, int bufferSize, int sendPrefixLength, int opsToPreAlloc)
+        public SocketClientSettings(IPEndPoint theServerEndPoint, int prefixLength, int bufferSize, int opsToPreAlloc)
         {
-            ReceivePrefixLength = receivePrefixLength;
+            PrefixLength = prefixLength;
             BufferSize = bufferSize;
-            SendPrefixLength = sendPrefixLength;
             OpsToPreAllocate = opsToPreAlloc;
             ServerEndPoint = theServerEndPoint;
         }
 
-        public int ReceivePrefixLength { get; private set; }
+        public int PrefixLength { get; private set; }
         public int BufferSize { get; private set; }
-        public int SendPrefixLength { get; private set; }
         public int OpsToPreAllocate { get; private set; }
 
         public IPEndPoint ServerEndPoint { get; private set; }

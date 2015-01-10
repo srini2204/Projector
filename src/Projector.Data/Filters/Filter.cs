@@ -19,7 +19,7 @@ namespace Projector.Data.Filters
             _filterCriteria = filterCriteria;
         }
 
-        public void Subscribe(IDataConsumer consumer)
+        public void AddConsumer(IDataConsumer consumer)
         {
             _consumer = consumer;
         }
@@ -36,10 +36,7 @@ namespace Projector.Data.Filters
             }
         }
 
-        public void OnUpdate(long[] ids, long count)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public void OnDelete(long[] ids, long count)
         {
@@ -69,13 +66,13 @@ namespace Projector.Data.Filters
             {
                 if (_addIndex > 0)
                 {
-                    _consumer.OnAdd(_addIds, _addIndex);
+                    //_consumer.OnAdd(_addIds, _addIndex);
                     _addIndex = 0;
                 }
 
                 if (_addIndex > 0)
                 {
-                    _consumer.OnDelete(_deleteIds, _deleteIndex);
+                    //_consumer.OnDelete(_deleteIds, _deleteIndex);
                     _deleteIndex = 0;
                 }
                 _consumer.OnSyncPoint();
@@ -100,6 +97,31 @@ namespace Projector.Data.Filters
             //}
             _consumer.OnSyncPoint();
             _addIndex = 0;
+        }
+
+        public void OnAdd(System.Collections.Generic.IList<int> ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnUpdate(System.Collections.Generic.IList<int> ids, System.Collections.Generic.IList<IField> updatedFields)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnDelete(System.Collections.Generic.IList<int> ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        IDisconnectable IDataProvider.AddConsumer(IDataConsumer consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveConsumer(IDataConsumer consumer)
+        {
+            throw new NotImplementedException();
         }
     }
 }

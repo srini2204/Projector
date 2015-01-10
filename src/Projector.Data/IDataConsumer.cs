@@ -1,11 +1,12 @@
 ﻿
+using System.Collections.Generic;
 namespace Projector.Data
 {
     public interface IDataConsumer
     {
-        void OnAdd(long[] ids, long count);
-        void OnUpdate(long[] ids, long count);
-        void OnDelete(long[] ids, long count);
+        void OnAdd(IList<int> ids);
+        void OnUpdate(IList<int> ids, IList<IField> updatedFields);
+        void OnDelete(IList<int> ids);
         void OnSchema(ISchema schema);
         void OnSyncPoint();
     }

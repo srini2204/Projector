@@ -11,29 +11,12 @@ namespace Projector.Data.Transformers
         {
 
         }
-        public void Subscribe(IDataConsumer consumer)
+        public void AddConsumer(IDataConsumer consumer)
         {
             throw new NotImplementedException();
         }
 
-        public void OnAdd(long[] ids, long count)
-        {
-            for (long i = 0; i < count; i++)
-            {
-                var id = ids[i];
-                
-            }
-        }
 
-        public void OnUpdate(long[] ids, long count)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void OnDelete(long[] ids, long count)
-        {
-            throw new NotImplementedException();
-        }
 
         public void OnSchema(ISchema schema)
         {
@@ -42,6 +25,31 @@ namespace Projector.Data.Transformers
         }
 
         public void OnSyncPoint()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnAdd(System.Collections.Generic.IList<int> ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnUpdate(System.Collections.Generic.IList<int> ids, System.Collections.Generic.IList<IField> updatedFields)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnDelete(System.Collections.Generic.IList<int> ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        IDisconnectable IDataProvider.AddConsumer(IDataConsumer consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveConsumer(IDataConsumer consumer)
         {
             throw new NotImplementedException();
         }
