@@ -18,10 +18,11 @@ namespace Projector.Playground
             var logicalServer = new LogicalServer(syncLoop);
             var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 1024*8, 8, new IPEndPoint(IPAddress.Any, 4444)), logicalServer, new SocketListener());
 
-            var schema = new Schema(50000);
+            var schema = new Schema(1000000);
             schema.CreateField<int>("Age");
             schema.CreateField<string>("Name");
             schema.CreateField<long>("Time");
+            schema.CreateField<long>("Time1");
 
             var table = new Table(schema);
             logicalServer.Publish("table1", table);
@@ -32,12 +33,13 @@ namespace Projector.Playground
             {
                 await syncLoop.Run(() =>
                 {
-                    for (int i = 0; i < 50000; i++)
+                    for (int i = 0; i < 1000000; i++)
                     {
                         var rowId1 = table.NewRow();
                         table.Set<int>(rowId1, "Age", i);
                         table.Set<string>(rowId1, "Name", "Max" + i);
                         table.Set<long>(rowId1, "Time", 125000+i);
+                        table.Set<long>(rowId1, "Time1", i);
                     }
 
                     table.FireChanges();
@@ -47,13 +49,14 @@ namespace Projector.Playground
 
                 while (true)
                 {
-                    await Task.Delay(500);
+                    await Task.Delay(1000);
                     await syncLoop.Run(() =>
                         {
                             var rowId1 = table.NewRow();
                             table.Set<int>(rowId1, "Age", 25);
                             table.Set<string>(rowId1, "Name", "Max");
                             table.Set<long>(rowId1, "Time", 125000);
+                            table.Set<long>(rowId1, "Time1", 1);
 
 
                             table.FireChanges();

@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Projector.IO.Implementation.Utils;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +19,10 @@ namespace Projector.IO.Implementation.Test.Utils
 
             Assert.AreEqual(10, circularStream.Length);
             Assert.AreEqual(100, circularStream.Capacity);
+
+            var readBuffer = new byte[10];
+            circularStream.Read(readBuffer, 0, 10);
+            Assert.IsTrue(AreBytesArraysEqual(buffer, readBuffer, 10), "Bytes we read seems to be not OK");
         }
 
         [Test]
@@ -29,6 +34,11 @@ namespace Projector.IO.Implementation.Test.Utils
 
             Assert.AreEqual(30, circularStream.Length);
             Assert.AreEqual(256, circularStream.Capacity);
+
+            var readBuffer = new byte[30];
+            circularStream.Read(readBuffer, 0, 30);
+            Assert.IsTrue(AreBytesArraysEqual(buffer, readBuffer, 30), "Bytes we read seems to be not OK");
+        
         }
 
         [Test]
@@ -40,6 +50,11 @@ namespace Projector.IO.Implementation.Test.Utils
 
             Assert.AreEqual(300, circularStream.Length);
             Assert.AreEqual(300, circularStream.Capacity);
+
+            var readBuffer = new byte[300];
+            circularStream.Read(readBuffer, 0, 300);
+            Assert.IsTrue(AreBytesArraysEqual(buffer, readBuffer, 300), "Bytes we read seems to be not OK");
+        
         }
 
         [Test]
@@ -141,39 +156,39 @@ namespace Projector.IO.Implementation.Test.Utils
         }
 
         [Test]
-        public void TestOverlappingSeveralTimesWithExtensionMultiThreaded()
+        public async Task TestOverlappingSeveralTimesWithExtensionMultiThreaded()
         {
             var circularStream = new CircularStream(10);
-            var bytesToWrite = 800 * 1024;
-            var bytesToRead = 600 * 1024;
+            var bytesToWrite = 80000 * 1024;
+            var bytesToRead = 60000 * 1024;
 
             var writeBuffer = GetBytesArray(bytesToWrite);
             var readBuffer = new byte[bytesToRead];
 
-            var taskWrite = Task.Run(() =>
+            var taskWrite = Task.Run(async () =>
             {
                 var bytesWrittenTotal = 0;
                 while (bytesWrittenTotal < bytesToWrite)
                 {
-                    circularStream.Write(writeBuffer, bytesWrittenTotal, 25);
+                    await circularStream.WriteAsync(writeBuffer, bytesWrittenTotal, 25);
                     bytesWrittenTotal += 25;
                 }
             });
 
-            var taskRead = Task.Run(() =>
+            var taskRead = Task.Run(async () =>
             {
                 var bytesReadTotal = 0;
                 while (bytesReadTotal < bytesToRead)
                 {
-                    var bytesRead = circularStream.Read(readBuffer, bytesReadTotal, 4);
+                    var bytesRead = await circularStream.ReadAsync(readBuffer, bytesReadTotal, 4);
 
                     bytesReadTotal += bytesRead;
                 }
 
             });
 
-            taskWrite.Wait();
-            taskRead.Wait();
+            await taskWrite;
+            await taskRead;
 
             Assert.IsTrue(AreBytesArraysEqual(readBuffer, writeBuffer, bytesToRead), "Bytes we read seems to be not OK");
         }
@@ -241,6 +256,7 @@ namespace Projector.IO.Implementation.Test.Utils
             {
                 if (sourceByteArray[i] != destByteArray[i])
                 {
+                    Debug.Print("Byte: " + i);
                     return false;
                 }
             }

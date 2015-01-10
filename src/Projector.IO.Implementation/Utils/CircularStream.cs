@@ -115,7 +115,11 @@ namespace Projector.IO.Implementation.Utils
                     }
                 }
 
-                bool allocatedNewArray = EnsureCapacity(i);
+                bool allocatedNewArray = EnsureCapacity(_capacity * 2 + count);
+                if (!allocatedNewArray)
+                {
+                    throw new InvalidOperationException("Buffer was not extended");
+                }
 
                 Interlocked.Exchange(ref _resourceSync, 0);
             }
