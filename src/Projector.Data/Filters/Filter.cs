@@ -4,7 +4,7 @@ namespace Projector.Data.Filters
 {
     public class Filter : IDataProvider, IDataConsumer
     {
-        private readonly IFilterCriteria _filterCriteria;
+        private readonly Func<ISchema, int, bool> _filterCriteria;
         private IDataConsumer _consumer;
         private ISchema _schema;
 
@@ -14,9 +14,9 @@ namespace Projector.Data.Filters
         private readonly long[] _deleteIds = new long[1024];
         private long _deleteIndex;
 
-        public Filter(IFilterCriteria filterCriteria)
+        public Filter(Func<ISchema, int, bool> filter)
         {
-            _filterCriteria = filterCriteria;
+            _filterCriteria = filter;
         }
 
         public void AddConsumer(IDataConsumer consumer)
@@ -24,31 +24,11 @@ namespace Projector.Data.Filters
             _consumer = consumer;
         }
 
-        public void OnAdd(long[] ids, long count)
-        {
-            for (long i = 0; i < count; i++)
-            {
-                if (_filterCriteria.Check(_schema, ids[i]))
-                {
-                    _addIds[_addIndex] = ids[i];
-                    _addIndex++;
-                }
-            }
-        }
+        
 
 
 
-        public void OnDelete(long[] ids, long count)
-        {
-            for (long i = 0; i < count; i++)
-            {
-                if (_filterCriteria.Check(_schema, ids[i]))
-                {
-                    _deleteIds[_addIndex] = ids[i];
-                    _deleteIndex++;
-                }
-            }
-        }
+        
 
         public void OnSchema(ISchema schema)
         {

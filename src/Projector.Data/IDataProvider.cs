@@ -6,4 +6,9 @@ namespace Projector.Data
         IDisconnectable AddConsumer(IDataConsumer consumer);
         void RemoveConsumer(IDataConsumer consumer);
     }
+
+    public interface IDataProvider<T> : IDataProvider
+    {
+
+    }
 }

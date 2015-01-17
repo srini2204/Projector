@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 namespace Projector.Data
 {
-    public class Table : IDataProvider
+    public class Table: IDataProvider
     {
         private readonly ISchema _schema;
 
