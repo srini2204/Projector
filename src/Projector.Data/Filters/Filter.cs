@@ -1,34 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Projector.Data.Filters
 {
-    public class Filter : IDataProvider, IDataConsumer
+    public class Filter<T> : DataProviderBase, IDataProvider<T>, IDataConsumer
     {
-        private readonly Func<ISchema, int, bool> _filterCriteria;
-        private IDataConsumer _consumer;
+        private Func<ISchema, int, bool> _filterCriteria;
         private ISchema _schema;
+        private IDisconnectable _subscription;
+        private IDataProvider<T> _sourceDataProvider;
 
-        private readonly long[] _addIds = new long[1024];
-        private long _addIndex;
-
-        private readonly long[] _deleteIds = new long[1024];
-        private long _deleteIndex;
-
-        public Filter(Func<ISchema, int, bool> filter)
+        public Filter(IDataProvider<T> sourceDataProvider, Func<ISchema, int, bool> filter)
         {
             _filterCriteria = filter;
+            _sourceDataProvider = sourceDataProvider;
+            _subscription = sourceDataProvider.AddConsumer(this);
         }
 
-        public void AddConsumer(IDataConsumer consumer)
+        public void ChangeFilter(Func<ISchema, int, bool> filter)
         {
-            _consumer = consumer;
+            _filterCriteria = filter;
+            _subscription.Dispose();
+            foreach (var id in UsedIds)
+            {
+                RemoveId(id);
+            }
+            _subscription = _sourceDataProvider.AddConsumer(this);
         }
-
-        
-
-
-
-        
 
         public void OnSchema(ISchema schema)
         {
@@ -40,68 +38,41 @@ namespace Projector.Data.Filters
             FireChanges();
         }
 
-        private void FireChanges()
+        public void OnAdd(IList<int> ids)
         {
-            if (_consumer != null)
+            foreach (var id in ids)
             {
-                if (_addIndex > 0)
+                if (_filterCriteria(_schema, id))
                 {
-                    //_consumer.OnAdd(_addIds, _addIndex);
-                    _addIndex = 0;
+                    AddId(id);
                 }
-
-                if (_addIndex > 0)
-                {
-                    //_consumer.OnDelete(_deleteIds, _deleteIndex);
-                    _deleteIndex = 0;
-                }
-                _consumer.OnSyncPoint();
             }
-
-            _addIndex = 0;
-            _deleteIndex = 0;
         }
 
-        private void CatchUp()
+        public void OnUpdate(IList<int> ids, IList<IField> updatedFields)
         {
-            _consumer.OnSchema(_schema);
-            //foreach (var id in _keyToIdIndex.Values)
-            //{
-            //    _addIds[_addIndex] = id;
-            //    _addIndex++;
-            //}
-
-            //if (_addIndex > 0)
-            //{
-            //    _consumer.OnAdd(_addIds, _addIndex);
-            //}
-            _consumer.OnSyncPoint();
-            _addIndex = 0;
+            foreach (var id in ids)
+            {
+                if (UsedIds.Contains(id) && !_filterCriteria(_schema, id))
+                {
+                    RemoveId(id);
+                }
+                else if(!UsedIds.Contains(id) && _filterCriteria(_schema, id))
+                {
+                    AddId(id);
+                }
+            }
         }
 
-        public void OnAdd(System.Collections.Generic.IList<int> ids)
+        public void OnDelete(IList<int> ids)
         {
-            throw new NotImplementedException();
-        }
-
-        public void OnUpdate(System.Collections.Generic.IList<int> ids, System.Collections.Generic.IList<IField> updatedFields)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void OnDelete(System.Collections.Generic.IList<int> ids)
-        {
-            throw new NotImplementedException();
-        }
-
-        IDisconnectable IDataProvider.AddConsumer(IDataConsumer consumer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemoveConsumer(IDataConsumer consumer)
-        {
-            throw new NotImplementedException();
+            foreach (var id in ids)
+            {
+                if (UsedIds.Contains(id))
+                {
+                    RemoveId(id);
+                }
+            }
         }
     }
 }

@@ -8,14 +8,14 @@ namespace Projector.Data.Test
     public class TableTest
     {
         private IDataConsumer _mockDataConsumer;
-        private ISchema _mockSchema;
+        private IWritebleSchema _mockSchema;
 
         private Table _table;
         [SetUp]
         public void InitContext()
         {
             _mockDataConsumer = Substitute.For<IDataConsumer>();
-            _mockSchema = Substitute.For<ISchema>();
+            _mockSchema = Substitute.For<IWritebleSchema>();
             _table = new Table(_mockSchema);
         }
 

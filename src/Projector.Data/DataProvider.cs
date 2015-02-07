@@ -1,4 +1,5 @@
-﻿using Projector.Data.Linq;
+﻿using Projector.Data.Filters;
+using Projector.Data.Linq;
 using Projector.Data.Tables;
 using System;
 using System.Linq.Expressions;
@@ -44,10 +45,10 @@ namespace Projector.Data
             return new Table<Tsource>(schema);
         }
 
-        public static IDataProvider<Tsource> Filter<Tsource>(this IDataProvider<Tsource> source, Expression<Func<Tsource, bool>> filterExpression)
+        public static Filter<Tsource> Filter<Tsource>(this IDataProvider<Tsource> source, Expression<Func<Tsource, bool>> filterExpression)
         {
             var filter = new FilterVisitor().GenerateFilter(filterExpression);
-            return null;
+            return new Filter<Tsource>(source, filter);
         }
 
         public static IDataProvider<TDest> Projection<Tsource, TDest>(this IDataProvider<Tsource> source, Expression<Func<Tsource, TDest>> transformerExpression)

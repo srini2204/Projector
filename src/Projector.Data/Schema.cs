@@ -3,20 +3,22 @@ using System.Collections.Generic;
 
 namespace Projector.Data
 {
-    public class Schema : ISchema
+    public class Schema : IWritebleSchema
     {
-        private readonly Dictionary<string, IField> _data;
-        private readonly List<IField> _columnList;
+        private readonly Dictionary<string, IWritableField> _data;
+        private readonly List<IWritableField> _columnList;
         private readonly int _capacity;
+
+        private int _currentRowIndex = -1;
 
         public Schema(int capacity)
         {
             _capacity = capacity;
-            _data = new Dictionary<string, IField>();
-            _columnList = new List<IField>();
+            _data = new Dictionary<string, IWritableField>();
+            _columnList = new List<IWritableField>();
         }
 
-        public List<IField> Columns
+        public IReadOnlyList<IField> Columns
         {
             get { return _columnList; }
         }
@@ -24,7 +26,7 @@ namespace Projector.Data
 
         public IField<T> GetField<T>(int id, string name)
         {
-            IField field;
+            IWritableField field;
             if (_data.TryGetValue(name, out field))
             {
                 field.SetCurrentRow(id);
@@ -37,7 +39,7 @@ namespace Projector.Data
 
         public IWritableField<T> GetWritableField<T>(int id, string name)
         {
-            IField field;
+            IWritableField field;
             if (_data.TryGetValue(name, out field))
             {
                 field.SetCurrentRow(id);
@@ -55,6 +57,15 @@ namespace Projector.Data
             _columnList.Add(field);
         }
 
+        public int GetNewRowId()
+        {
+            _currentRowIndex++;
+            foreach (var writableField in _columnList)
+            {
+                writableField.EnsureCapacity(_currentRowIndex);
+            }
 
+            return _currentRowIndex;
+        }
     }
 }

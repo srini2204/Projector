@@ -6,6 +6,7 @@ using Projector.IO.SocketHelpers;
 using Projector.IO.Test.TestHelpers;
 using System.Net;
 using System.Threading.Tasks;
+using System;
 
 namespace Projector.IO.Test.Server
 {
@@ -71,11 +72,9 @@ namespace Projector.IO.Test.Server
         }
 
         [Test]
-        public async Task TestServerStopWhileThereActiveConnections()
+        public void TestServerStopWhileThereActiveConnections()
         {
-            //set up
-
-            Assert.Fail();
+            throw new NotImplementedException();
         }
 
         [Test]

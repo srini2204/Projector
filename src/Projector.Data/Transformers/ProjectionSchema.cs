@@ -12,7 +12,7 @@ namespace Projector.Data.Transformers
 
 
 
-        public List<IField> Columns
+        public IReadOnlyList<IField> Columns
         {
             get { throw new NotImplementedException(); }
         }

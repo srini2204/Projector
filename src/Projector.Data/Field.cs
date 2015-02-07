@@ -20,11 +20,6 @@ namespace Projector.Data
             get { return typeof(TData); }
         }
 
-        void IField.SetCurrentRow(int rowId)
-        {
-            _id = rowId;
-        }
-
         public TData Value
         {
             get
@@ -35,20 +30,27 @@ namespace Projector.Data
 
         void IWritableField<TData>.SetValue(TData value)
         {
-            if(_id>=_data.Count)
-            {
-                _data.Add(value);
-            }
-            else
-            {
-                _data[_id] = value;
-            }
+            _data[_id] = value;
         }
 
 
         public string Name
         {
             get { return _name; }
+        }
+
+        public void SetCurrentRow(int rowId)
+        {
+            _id = rowId;
+        }
+
+
+        public void EnsureCapacity(int rowId)
+        {
+            if (rowId >= _data.Count)
+            {
+                _data.Add(default(TData));
+            }
         }
     }
 }
