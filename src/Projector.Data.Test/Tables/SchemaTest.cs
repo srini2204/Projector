@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace Projector.Data.Test
+namespace Projector.Data.Test.Tables
 {
     [TestFixture]
     public class SchemaTest

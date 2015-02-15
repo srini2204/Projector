@@ -1,10 +1,10 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
-using Projector.Data.Linq;
+using Projector.Data.Filter;
 using System;
 using System.Linq.Expressions;
 
-namespace Projector.Data.Test.Linq
+namespace Projector.Data.Test.Filter
 {
     [TestFixture]
     public class FilterVisitorTest

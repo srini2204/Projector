@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Projector.Data
+namespace Projector.Data.Tables
 {
     public class Field<TData> : IField<TData>, IWritableField<TData>
     {

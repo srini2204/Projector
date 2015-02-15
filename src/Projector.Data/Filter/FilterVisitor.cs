@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Projector.Data.Linq
+namespace Projector.Data.Filter
 {
     public class FilterVisitor : ExpressionVisitor
     {

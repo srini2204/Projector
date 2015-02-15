@@ -13,12 +13,16 @@ namespace Projector.Data
         private HashSet<int> _currentAddedIds;
         private HashSet<int> _currentRemovedIds;
 
-        protected void SetSchema(ISchema schema)
+        public DataProviderBase()
         {
-            _schema = schema;
             UsedIds = new HashSet<int>();
             _currentAddedIds = new HashSet<int>();
             _currentRemovedIds = new HashSet<int>();
+        }
+
+        protected void SetSchema(ISchema schema)
+        {
+            _schema = schema;
         }
 
         protected void AddId(int id)
@@ -33,6 +37,7 @@ namespace Projector.Data
 
         protected void FireChanges()
         {
+            var thereWereChanges = false;
             foreach (var newId in _currentAddedIds)
             {
                 UsedIds.Add(newId);
@@ -45,14 +50,21 @@ namespace Projector.Data
 
             if (_currentRemovedIds.Count > 0)
             {
+                thereWereChanges = true;
                 FireOnDelete(_currentRemovedIds.ToList());
                 _currentRemovedIds.Clear();
             }
 
             if (_currentAddedIds.Count > 0)
             {
+                thereWereChanges = true;
                 FireOnAdd(_currentAddedIds.ToList());
                 _currentAddedIds.Clear();
+            }
+
+            if (thereWereChanges)
+            {
+                FireOnSyncPoint();
             }
         }
 

@@ -63,12 +63,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataProviderTest.cs" />
-    <Compile Include="FilterTest.cs" />
+    <Compile Include="ProjectionsTest.cs" />
+    <Compile Include="Filter\FilterTest.cs" />
     <Compile Include="Helpers\Client.cs" />
-    <Compile Include="Linq\FilterVisitorTest.cs" />
-    <Compile Include="SchemaTest.cs" />
-    <Compile Include="TableTest.cs" />
+    <Compile Include="Join\InnerJoinTest.cs" />
+    <Compile Include="Filter\FilterVisitorTest.cs" />
+    <Compile Include="Projection\ProjectionVisitorTest.cs" />
+    <Compile Include="Tables\SchemaTest.cs" />
+    <Compile Include="Tables\TableTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

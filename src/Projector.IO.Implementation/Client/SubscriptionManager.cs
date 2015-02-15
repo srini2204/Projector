@@ -1,7 +1,7 @@
 ﻿using Projector.Data;
+using Projector.Data.Tables;
 using Projector.IO.Implementation.Protocol;
 using Projector.IO.Implementation.Utils;
-using Projector.IO.Protocol.Commands;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -141,8 +141,8 @@ namespace Projector.IO.Implementation.Client
                     var nameLength = ByteBlader.ReadInt32(inputStream);
                     bytesLeft -= 4;
                     var fieldName = ByteBlader.ReadString(inputStream, nameLength);
-                    bytesLeft -= nameLength
-                        ;
+                    bytesLeft -= nameLength;
+
                     if (Constants.FieldType.Int == type)
                     {
                         schema.CreateField<int>(fieldName);
@@ -163,8 +163,7 @@ namespace Projector.IO.Implementation.Client
 
                 var table = new Table(schema);
                 _tables.TryAdd(subscriptionId, table);
-
-                _eventNotifier.Set();
+                
             }
             else if (Constants.MessageType.RowAdded == commandType)
             {
@@ -207,6 +206,7 @@ namespace Projector.IO.Implementation.Client
                 await _syncLoop.Run(() =>
                     {
                         _tables[subscriptionId].FireChanges();
+                        _eventNotifier.Set();
                     });
             }
             else

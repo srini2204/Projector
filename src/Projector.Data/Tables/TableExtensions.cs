@@ -1,13 +1,9 @@
-﻿using Projector.Data.Filters;
-using Projector.Data.Linq;
-using Projector.Data.Tables;
-using System;
-using System.Linq.Expressions;
+﻿using System;
 using System.Reflection;
 
-namespace Projector.Data
+namespace Projector.Data.Tables
 {
-    public static class DataProvider
+    public static class TableExtensions
     {
         public static Table<Tsource> CreateTable<Tsource>()
         {
@@ -21,7 +17,7 @@ namespace Projector.Data
             var propInfos = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             var schema = new Schema(capacity);
-            
+
             foreach (var propInfoItem in propInfos)
             {
                 if (propInfoItem.PropertyType == typeof(string))
@@ -44,18 +40,5 @@ namespace Projector.Data
 
             return new Table<Tsource>(schema);
         }
-
-        public static Filter<Tsource> Filter<Tsource>(this IDataProvider<Tsource> source, Expression<Func<Tsource, bool>> filterExpression)
-        {
-            var filter = new FilterVisitor().GenerateFilter(filterExpression);
-            return new Filter<Tsource>(source, filter);
-        }
-
-        public static IDataProvider<TDest> Projection<Tsource, TDest>(this IDataProvider<Tsource> source, Expression<Func<Tsource, TDest>> transformerExpression)
-        {
-            throw new NotImplementedException();
-        }
-
-
     }
 }

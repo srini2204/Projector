@@ -6,8 +6,15 @@ using System.Text;
 
 namespace Projector.IO.Implementation.Protocol
 {
-    public static class MessageComposer
+    public class MessageComposer
     {
+        private MemoryStream _buffer;
+
+        public MessageComposer()
+        {
+            _buffer = new MemoryStream(500 * 1024);
+        }
+
         public static void WriteSubscribeMessage(Stream stream, int subscriptionId, string tableName)
         {
             byte[] arrayOfBytesInMessage = Encoding.ASCII.GetBytes(tableName);
@@ -50,81 +57,80 @@ namespace Projector.IO.Implementation.Protocol
             ByteBlader.WriteInt32(stream, 0);
         }
 
-        public static void WriteSchemaMessage(Stream stream, int subscriptionId, ISchema schema)
+        public void WriteSchemaMessage(Stream stream, int subscriptionId, ISchema schema)
         {
-            var memoryStream = new MemoryStream(1024);
-            ByteBlader.WriteInt32(memoryStream, subscriptionId);
-            ByteBlader.WriteByte(memoryStream, Constants.MessageType.Schema);
+            ByteBlader.WriteInt32(_buffer, subscriptionId);
+            ByteBlader.WriteByte(_buffer, Constants.MessageType.Schema);
 
             foreach (var field in schema.Columns)
             {
                 if (field.DataType == typeof(int))
                 {
-                    ByteBlader.WriteByte(memoryStream, Constants.FieldType.Int);
+                    ByteBlader.WriteByte(_buffer, Constants.FieldType.Int);
                 }
                 else if (field.DataType == typeof(long))
                 {
-                    ByteBlader.WriteByte(memoryStream, Constants.FieldType.Long);
+                    ByteBlader.WriteByte(_buffer, Constants.FieldType.Long);
                 }
                 else if (field.DataType == typeof(string))
                 {
-                    ByteBlader.WriteByte(memoryStream, Constants.FieldType.String);
+                    ByteBlader.WriteByte(_buffer, Constants.FieldType.String);
                 }
 
                 byte[] arrayOfBytesColumnName = Encoding.ASCII.GetBytes(field.Name);
-                ByteBlader.WriteInt32(memoryStream, arrayOfBytesColumnName.Length);
-                ByteBlader.WriteBytes(memoryStream, arrayOfBytesColumnName);
+                ByteBlader.WriteInt32(_buffer, arrayOfBytesColumnName.Length);
+                ByteBlader.WriteBytes(_buffer, arrayOfBytesColumnName);
             }
 
-            var messageLength = (int)memoryStream.Position;
-            memoryStream.Position = 0;
+            var messageLength = (int)_buffer.Position;
+            _buffer.Position = 0;
 
             ByteBlader.WriteInt32(stream, messageLength);
-            memoryStream.CopyTo(stream);
+            _buffer.CopyTo(stream);
+            _buffer.Position = 0;
         }
 
-        public static void WriteRowAddedMessage(Stream stream, int subscriptionId, IList<int> ids, ISchema _schema)
+        public void WriteRowAddedMessage(Stream stream, int subscriptionId, IList<int> ids, ISchema schema)
         {
-            var memoryStream = new MemoryStream(1024);
-            foreach (var id in ids)
+           foreach (var id in ids)
             {
-                ByteBlader.WriteInt32(memoryStream, subscriptionId);
-                ByteBlader.WriteByte(memoryStream, Constants.MessageType.RowAdded);
+                ByteBlader.WriteInt32(_buffer, subscriptionId);
+                ByteBlader.WriteByte(_buffer, Constants.MessageType.RowAdded);
 
                 var columndId = 0;
-                foreach (var field in _schema.Columns)
+                foreach (var field in schema.Columns)
                 {
 
-                    ByteBlader.WriteInt32(memoryStream, columndId);
+                    ByteBlader.WriteInt32(_buffer, columndId);
 
                     if (field.DataType == typeof(int))
                     {
-                        var iField = _schema.GetField<int>(id, field.Name);
-                        ByteBlader.WriteInt32(memoryStream, iField.Value);
+                        var iField = schema.GetField<int>(id, field.Name);
+                        ByteBlader.WriteInt32(_buffer, iField.Value);
                     }
                     else if (field.DataType == typeof(long))
                     {
-                        var iField = _schema.GetField<long>(id, field.Name);
-                        ByteBlader.WriteLong(memoryStream, iField.Value);
+                        var iField = schema.GetField<long>(id, field.Name);
+                        ByteBlader.WriteLong(_buffer, iField.Value);
                     }
                     else if (field.DataType == typeof(string))
                     {
-                        var iField = _schema.GetField<string>(id, field.Name);
+                        var iField = schema.GetField<string>(id, field.Name);
                         byte[] arrayOfBytesStringValue = Encoding.ASCII.GetBytes(iField.Value);
-                        ByteBlader.WriteInt32(memoryStream, arrayOfBytesStringValue.Length);
-                        ByteBlader.WriteBytes(memoryStream, arrayOfBytesStringValue);
+                        ByteBlader.WriteInt32(_buffer, arrayOfBytesStringValue.Length);
+                        ByteBlader.WriteBytes(_buffer, arrayOfBytesStringValue);
                     }
 
                     columndId++;
                 }
 
-                var messageLength = (int)memoryStream.Position;
-                memoryStream.Position = 0;
+                var messageLength = (int)_buffer.Position;
+                _buffer.Position = 0;
 
                 ByteBlader.WriteInt32(stream, messageLength);
-                memoryStream.CopyTo(stream);
+                _buffer.CopyTo(stream);
 
-                memoryStream.SetLength(0);
+                _buffer.Position = 0;
             }
         }
     }

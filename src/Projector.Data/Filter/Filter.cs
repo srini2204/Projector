@@ -1,36 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Projector.Data.Filters
+namespace Projector.Data.Filter
 {
-    public class Filter<T> : DataProviderBase, IDataProvider<T>, IDataConsumer
+    public class Filter : DataProviderBase, IDataConsumer
     {
         private Func<ISchema, int, bool> _filterCriteria;
-        private ISchema _schema;
-        private IDisconnectable _subscription;
-        private IDataProvider<T> _sourceDataProvider;
 
-        public Filter(IDataProvider<T> sourceDataProvider, Func<ISchema, int, bool> filter)
+        private IDisconnectable _subscription;
+        private IDataProvider _sourceDataProvider;
+
+        public Filter(IDataProvider sourceDataProvider, Func<ISchema, int, bool> filterCriteria)
         {
-            _filterCriteria = filter;
+            _filterCriteria = filterCriteria;
             _sourceDataProvider = sourceDataProvider;
             _subscription = sourceDataProvider.AddConsumer(this);
         }
 
-        public void ChangeFilter(Func<ISchema, int, bool> filter)
+        public void ChangeFilter(Func<ISchema, int, bool> filterCriteria)
         {
-            _filterCriteria = filter;
+            _filterCriteria = filterCriteria;
             _subscription.Dispose();
             foreach (var id in UsedIds)
             {
                 RemoveId(id);
             }
             _subscription = _sourceDataProvider.AddConsumer(this);
+            FireChanges();
         }
 
         public void OnSchema(ISchema schema)
         {
-            _schema = schema;
+            SetSchema(schema);
         }
 
         public void OnSyncPoint()
@@ -42,7 +43,7 @@ namespace Projector.Data.Filters
         {
             foreach (var id in ids)
             {
-                if (_filterCriteria(_schema, id))
+                if (_filterCriteria(Schema, id))
                 {
                     AddId(id);
                 }
@@ -53,11 +54,11 @@ namespace Projector.Data.Filters
         {
             foreach (var id in ids)
             {
-                if (UsedIds.Contains(id) && !_filterCriteria(_schema, id))
+                if (UsedIds.Contains(id) && !_filterCriteria(Schema, id))
                 {
                     RemoveId(id);
                 }
-                else if(!UsedIds.Contains(id) && _filterCriteria(_schema, id))
+                else if (!UsedIds.Contains(id) && _filterCriteria(Schema, id))
                 {
                     AddId(id);
                 }

@@ -1,8 +1,9 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
+using Projector.Data.Tables;
 using System.Collections.Generic;
 
-namespace Projector.Data.Test
+namespace Projector.Data.Test.Tables
 {
     [TestFixture]
     public class TableTest

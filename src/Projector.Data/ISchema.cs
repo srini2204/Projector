@@ -8,10 +8,4 @@ namespace Projector.Data
 
         IField<T> GetField<T>(int id, string name);
     }
-
-    public interface IWritebleSchema : ISchema
-    {
-        IWritableField<T> GetWritableField<T>(int id, string name);
-        int GetNewRowId();
-    }
 }
