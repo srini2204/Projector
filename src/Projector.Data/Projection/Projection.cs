@@ -16,6 +16,7 @@ namespace Projector.Data.Projection
 
         public void OnSchema(ISchema schema)
         {
+
             var projectedSchema = new ProjectionSchema(schema, _projectionFields);
             SetSchema(projectedSchema);
         }

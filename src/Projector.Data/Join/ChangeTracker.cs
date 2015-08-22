@@ -7,7 +7,7 @@ namespace Projector.Data.Join
     {
         private IDisconnectable _subscription;
 
-        public ChangeTracker(IDataProvider sourceDataProvider)
+        public void SetSource(IDataProvider sourceDataProvider)
         {
             _subscription = sourceDataProvider.AddConsumer(this);
         }

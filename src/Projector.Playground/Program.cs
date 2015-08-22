@@ -34,7 +34,7 @@ namespace Projector.Playground
             {
                 await syncLoop.Run(() =>
                 {
-                    for (int i = 0; i < 10000; i++)
+                    for (int i = 0; i < 1000000; i++)
                     {
                         var rowId1 = table.NewRow();
                         table.Set<int>(rowId1, "Age", i);
@@ -48,27 +48,27 @@ namespace Projector.Playground
                     Console.WriteLine("Published");
                 });
 
-            //    while (true)
-            //    {
-            //        await Task.Delay(1000);
-            //        await syncLoop.Run(() =>
-            //            {
-            //                for (int i = 0; i < 10000; i++)
-            //                {
-            //                    var rowId1 = table.NewRow();
-            //                    table.Set<int>(rowId1, "Age", 25);
-            //                    table.Set<string>(rowId1, "Name", "Max");
-            //                    table.Set<long>(rowId1, "Time", 125000);
-            //                    table.Set<long>(rowId1, "Time1", 1);
+                //while (true)
+                //{
+                //    await Task.Delay(1000);
+                //    await syncLoop.Run(() =>
+                //        {
+                //            for (int i = 0; i < 10000; i++)
+                //            {
+                //                var rowId1 = table.NewRow();
+                //                table.Set<int>(rowId1, "Age", 25);
+                //                table.Set<string>(rowId1, "Name", "Max");
+                //                table.Set<long>(rowId1, "Time", 125000);
+                //                table.Set<long>(rowId1, "Time1", 1);
 
 
-                                
-            //                }
 
-            //                table.FireChanges();
-            //            });
+                //            }
 
-            //    }
+                //            table.FireChanges();
+                //        });
+
+                //}
             });
 
             startedServerTask.Wait();

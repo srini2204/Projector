@@ -67,6 +67,17 @@ namespace Projector.Data.Test
         }
 
         [Test]
+        public void CreateGrouByTest()
+        {
+            var personTable = TableExtensions.CreateTable<Person>();
+
+            personTable.GroupBy(person=> person.Name,(key,persons)=> new {PersonName=key, PersonMaxAge=persons.Max(p=>p.Age)});
+
+            
+
+        }
+
+        [Test]
         public void ProjectionChainingTest()
         {
             var sourceTable = TableExtensions.CreateTable<Person>();

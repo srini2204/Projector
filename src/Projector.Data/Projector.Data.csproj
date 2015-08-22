@@ -39,6 +39,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GroupBy\GroupBy.cs" />
+    <Compile Include="GroupBy\GroupByGeneric.cs" />
+    <Compile Include="Join\GenericJoin.cs" />
+    <Compile Include="Join\JoinProjectedField.cs" />
+    <Compile Include="Join\JoinProjectionSchema.cs" />
+    <Compile Include="Join\KeySelectorVisitor.cs" />
+    <Compile Include="Join\ResultSelectorVisitor.cs" />
     <Compile Include="Projections.cs" />
     <Compile Include="DataProviderBase.cs" />
     <Compile Include="Disconnectable.cs" />
