@@ -37,27 +37,27 @@ namespace Projector.IO.Test.SocketHelpers
             var iSocket = Substitute.For<ISocket>();
             var listBytes = new List<int>();
             iSocket.SendAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 20;
-                listBytes.Add(aw.EventArgs.Count);
-                return Task.FromResult(0);
-            },
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 4;
-                listBytes.Add(aw.EventArgs.Count);
-                return Task.FromResult(0);
-            },
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 5;
-                listBytes.Add(aw.EventArgs.Count);
-                return Task.FromResult(0);
-            }
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 20;
+                    listBytes.Add(aw.EventArgs.Count);
+                    return Task.FromResult(0);
+                },
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 4;
+                    listBytes.Add(aw.EventArgs.Count);
+                    return Task.FromResult(0);
+                },
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 5;
+                    listBytes.Add(aw.EventArgs.Count);
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
@@ -82,13 +82,13 @@ namespace Projector.IO.Test.SocketHelpers
             var iSocket = Substitute.For<ISocket>();
             var listBytes = new List<int>();
             iSocket.SendAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 29;
-                listBytes.Add(aw.EventArgs.Count);
-                return Task.FromResult(0);
-            }
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 29;
+                    listBytes.Add(aw.EventArgs.Count);
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
@@ -111,12 +111,12 @@ namespace Projector.IO.Test.SocketHelpers
             var iSocket = Substitute.For<ISocket>();
 
             iSocket.SendAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.EventArgs.SocketError = SocketError.OperationAborted;
-                return Task.FromResult(0);
-            }
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.EventArgs.SocketError = SocketError.OperationAborted;
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
@@ -134,7 +134,7 @@ namespace Projector.IO.Test.SocketHelpers
         }
 
         [Test]
-        [ExpectedException(typeof(ArgumentException), ExpectedMessage = "Stream position is 0. There is nothing to send")]
+        [ExpectedException(typeof(ArgumentException), ExpectedMessage = "Stream length is 0. There is nothing to send")]
         public async Task TestExceptionDuringZeroBytesSendOperation()
         {
             var iSocket = Substitute.For<ISocket>();
@@ -143,7 +143,7 @@ namespace Projector.IO.Test.SocketHelpers
 
             using (var stream = new MemoryStream())
             {
-                var res = await socketWrapper.SendAsync(stream);
+                await socketWrapper.SendAsync(stream);
             }
         }
 
@@ -154,27 +154,27 @@ namespace Projector.IO.Test.SocketHelpers
             var iSocket = Substitute.For<ISocket>();
             var listBytes = new List<int>();
             iSocket.SendAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 20;
-                listBytes.Add(aw.EventArgs.Count);
-                return Task.FromResult(0);
-            },
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 40;
-                listBytes.Add(aw.EventArgs.Count);
-                return Task.FromResult(0);
-            },
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 94;
-                listBytes.Add(aw.EventArgs.Count);
-                return Task.FromResult(0);
-            }
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 20;
+                    listBytes.Add(aw.EventArgs.Count);
+                    return Task.FromResult(0);
+                },
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 40;
+                    listBytes.Add(aw.EventArgs.Count);
+                    return Task.FromResult(0);
+                },
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 94;
+                    listBytes.Add(aw.EventArgs.Count);
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
@@ -199,14 +199,14 @@ namespace Projector.IO.Test.SocketHelpers
             var iSocket = Substitute.For<ISocket>();
 
             iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 44;
-                Buffer.BlockCopy(PrepareData(40), 0, aw.EventArgs.Buffer, 0, 44);
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 44;
+                    Buffer.BlockCopy(PrepareData(40), 0, aw.EventArgs.Buffer, 0, 44);
 
-                return Task.FromResult(0);
-            }
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
@@ -215,6 +215,7 @@ namespace Projector.IO.Test.SocketHelpers
             {
                 var res = await socketWrapper.ReceiveAsync(stream);
 
+                Assert.IsTrue(res);
                 Assert.AreEqual(44, stream.Position);
                 iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
             }
@@ -227,22 +228,22 @@ namespace Projector.IO.Test.SocketHelpers
             var mockData = PrepareData(40);
 
             iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 24;
-                Buffer.BlockCopy(mockData, 0, aw.EventArgs.Buffer, 0, 24);
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 24;
+                    Buffer.BlockCopy(mockData, 0, aw.EventArgs.Buffer, 0, 24);
 
-                return Task.FromResult(0);
-            },
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 20;
-                Buffer.BlockCopy(mockData, 24, aw.EventArgs.Buffer, 0, 20);
+                    return Task.FromResult(0);
+                },
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 20;
+                    Buffer.BlockCopy(mockData, 24, aw.EventArgs.Buffer, 0, 20);
 
-                return Task.FromResult(0);
-            }
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
@@ -270,14 +271,14 @@ namespace Projector.IO.Test.SocketHelpers
             var mockData = PrepareData(0);
 
             iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.BytesTransferred = 4;
-                Buffer.BlockCopy(mockData, 0, aw.EventArgs.Buffer, 0, 4);
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.BytesTransferred = 4;
+                    Buffer.BlockCopy(mockData, 0, aw.EventArgs.Buffer, 0, 4);
 
-                return Task.FromResult(0);
-            }
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);
@@ -286,6 +287,7 @@ namespace Projector.IO.Test.SocketHelpers
             {
                 var res = await socketWrapper.ReceiveAsync(stream);
 
+                Assert.IsTrue(res);
                 Assert.AreEqual(4, stream.Position);
                 iSocket.Received(1).ReceiveAsync(Arg.Any<SocketAwaitable>()).Forget();
             }
@@ -298,12 +300,12 @@ namespace Projector.IO.Test.SocketHelpers
             var iSocket = Substitute.For<ISocket>();
 
             iSocket.ReceiveAsync(Arg.Any<SocketAwaitable>()).Returns(
-            x =>
-            {
-                var aw = x.Arg<SocketAwaitable>();
-                aw.EventArgs.SocketError = SocketError.OperationAborted;
-                return Task.FromResult(0);
-            }
+                x =>
+                {
+                    var aw = x.Arg<SocketAwaitable>();
+                    aw.EventArgs.SocketError = SocketError.OperationAborted;
+                    return Task.FromResult(0);
+                }
             );
 
             var socketWrapper = new SocketWrapper(_soketAwaitable, _soketAwaitable, iSocket, _eventArgsBuferSize);

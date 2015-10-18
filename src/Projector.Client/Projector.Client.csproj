@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -49,15 +49,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Projector.Data\Projector.Data.csproj">
-      <Project>{c85a7f90-567c-49fe-8d9c-03c1c544078d}</Project>
+      <Project>{C85A7F90-567C-49FE-8D9C-03C1C544078D}</Project>
       <Name>Projector.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\Projector.IO.Implementation\Projector.IO.Implementation.csproj">
-      <Project>{7ada17fe-24f5-4cd7-afa6-dc9f431faf11}</Project>
+      <Project>{7ADA17FE-24F5-4CD7-AFA6-DC9F431FAF11}</Project>
       <Name>Projector.IO.Implementation</Name>
     </ProjectReference>
     <ProjectReference Include="..\Projector.IO\Projector.IO.csproj">
-      <Project>{5741250f-9706-4503-8536-dee6fa8f48e2}</Project>
+      <Project>{5741250F-9706-4503-8536-DEE6FA8F48E2}</Project>
       <Name>Projector.IO</Name>
     </ProjectReference>
   </ItemGroup>

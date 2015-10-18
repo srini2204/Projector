@@ -11,6 +11,7 @@ namespace Projector.IO.Implementation.Test.Utils
     class SyncLoopTest
     {
         private SyncLoop _syncLoop;
+
         [SetUp]
         public void InitContext()
         {
@@ -22,26 +23,38 @@ namespace Projector.IO.Implementation.Test.Utils
         {
             var processTask = _syncLoop.StartProcessActions(CancellationToken.None);
             var done = false;
-            await _syncLoop.Run(() =>
-            {
-                Thread.Sleep(1000);
-                done = true;
-            });
 
+            await _syncLoop.Run(() =>
+                {
+                    done = true;
+                });
+            
             Assert.IsTrue(done);
         }
 
         [Test]
+        [ExpectedException(typeof(InvalidOperationException))]
         public async Task TestExceptionDuringExecution()
         {
             var processTask = _syncLoop.StartProcessActions(CancellationToken.None);
-            var done = false;
-            await _syncLoop.Run(() =>
-            {
-                throw new Exception();
-            });
 
-            Assert.IsTrue(done);
+            await _syncLoop.Run(() =>
+                {
+                    throw new InvalidOperationException("Something happend here");
+                });
+        }
+
+        [Test]
+        [ExpectedException(typeof(TaskCanceledException))]
+        public async Task TestStopDuringExecution()
+        {
+            var cancelSource = new CancellationTokenSource();
+            
+            var processTask = _syncLoop.StartProcessActions(cancelSource.Token);
+
+            cancelSource.Cancel();
+
+            await processTask;
         }
     }
 }

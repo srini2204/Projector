@@ -17,12 +17,14 @@ namespace Projector.IO.Implementation.Utils
         private int _readPosition;
         private int _size;
 
-        //0 for false, 1 for true. 
+        //0 for false, 1 for true.
         private long _resourceSync = 0;
 
         // _readWriteBalance < 0 means there are free awaiters and not enough items.
         // _readWriteBalance > 0 means the opposite is true.
         private int _readWriteBalance = 0;
+
+        private static Task SuccessTask = Task.FromResult(0);
 
         public CircularStream()
             : this(0)
@@ -81,6 +83,12 @@ namespace Projector.IO.Implementation.Utils
             }
         }
 
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            Write(buffer, offset, count);
+            return SuccessTask;
+        }
+
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (buffer == null)
@@ -115,7 +123,7 @@ namespace Projector.IO.Implementation.Utils
                     }
                 }
 
-                bool allocatedNewArray = EnsureCapacity(_capacity * 2 + count);
+                bool allocatedNewArray = EnsureCapacity((_capacity + count) * 2);
                 if (!allocatedNewArray)
                 {
                     throw new InvalidOperationException("Buffer was not extended");
@@ -154,6 +162,11 @@ namespace Projector.IO.Implementation.Utils
             }
 
             Interlocked.Exchange(ref _readWriteBalance, 0);
+        }
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Read(buffer, offset, count));
         }
 
         public override int Read(byte[] buffer, int offset, int count)

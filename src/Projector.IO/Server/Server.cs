@@ -22,16 +22,16 @@ namespace Projector.IO.Server
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly ILogicalServer _logicalServer;
 
-        public Server(SocketListenerSettings socketListenerSettings, ILogicalServer logicalServer, ISocketListener socketListenere)
+        public Server(SocketListenerSettings socketListenerSettings, ILogicalServer logicalServer, ISocketListener socketListener)
         {
             _socketListenerSettings = socketListenerSettings;
             _logicalServer = logicalServer;
 
             _poolOfRecSendSocketAwaitables = new ObjectPool<SocketAwaitable>();
-            _socketListener = socketListenere;
+            _socketListener = socketListener;
 
             _theBufferManager = new BufferManager(_socketListenerSettings.BufferSize * _socketListenerSettings.NumberOfSaeaForRecSend * _socketListenerSettings.OpsToPreAllocate,
-            _socketListenerSettings.BufferSize * _socketListenerSettings.OpsToPreAllocate);
+                _socketListenerSettings.BufferSize * _socketListenerSettings.OpsToPreAllocate);
 
             Init();
 

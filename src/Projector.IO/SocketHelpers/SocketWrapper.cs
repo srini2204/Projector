@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using System;
 
 namespace Projector.IO.SocketHelpers
 {
@@ -21,6 +22,11 @@ namespace Projector.IO.SocketHelpers
 
         public async Task<bool> SendAsync(Stream stream)
         {
+            if (stream.Length == 0)
+            {
+                throw new ArgumentException("Stream length is 0. There is nothing to send");
+            }
+
             var sendEventArgs = _sendSocketAwaitable.EventArgs;
 
             var receiveSendToken = (DataHoldingUserToken)sendEventArgs.UserToken;
@@ -110,10 +116,7 @@ namespace Projector.IO.SocketHelpers
 
             }
 
-            //This method closes the socket and releases all resources, both
-            //managed and unmanaged. It internally calls Dispose.
             _socket.Close();
-
         }
 
         public object Token { get; set; }

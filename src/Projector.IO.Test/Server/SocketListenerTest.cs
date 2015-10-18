@@ -25,7 +25,9 @@ namespace Projector.IO.Test.Server
 
             Assert.NotNull(clientSocket, "Corresponding client socket must not be null");
 
-            Assert.True(taskSocket.IsCompleted, "Task must be completed. The first connector should be here already");
+            var someoneConnected = taskSocket.Wait(1000);
+
+            Assert.True(someoneConnected, "Task must be completed. The first connector should be here already");
             Assert.NotNull(taskSocket.Result, "Corresponding server socket must not be null");
 
             socketListener.StopListen();

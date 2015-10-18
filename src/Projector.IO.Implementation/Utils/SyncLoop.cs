@@ -19,7 +19,7 @@ namespace Projector.IO.Implementation.Utils
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var action = await _actionQueue.TakeAsync();
+                var action = await _actionQueue.TakeAsync(cancellationToken);
 
                 action();
             }

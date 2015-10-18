@@ -49,12 +49,11 @@ namespace Projector.IO.Implementation.Test.Utils
             circularStream.Write(buffer, 0, 300);
 
             Assert.AreEqual(300, circularStream.Length);
-            Assert.AreEqual(300, circularStream.Capacity);
+            Assert.AreEqual(620, circularStream.Capacity);
 
             var readBuffer = new byte[300];
             circularStream.Read(readBuffer, 0, 300);
             Assert.IsTrue(AreBytesArraysEqual(buffer, readBuffer, 300), "Bytes we read seems to be not OK");
-        
         }
 
         [Test]
@@ -166,26 +165,26 @@ namespace Projector.IO.Implementation.Test.Utils
             var readBuffer = new byte[bytesToRead];
 
             var taskWrite = Task.Run(async () =>
-            {
-                var bytesWrittenTotal = 0;
-                while (bytesWrittenTotal < bytesToWrite)
                 {
-                    await circularStream.WriteAsync(writeBuffer, bytesWrittenTotal, 25);
-                    bytesWrittenTotal += 25;
-                }
-            });
+                    var bytesWrittenTotal = 0;
+                    while (bytesWrittenTotal < bytesToWrite)
+                    {
+                        await circularStream.WriteAsync(writeBuffer, bytesWrittenTotal, 25);
+                        bytesWrittenTotal += 25;
+                    }
+                });
 
             var taskRead = Task.Run(async () =>
-            {
-                var bytesReadTotal = 0;
-                while (bytesReadTotal < bytesToRead)
                 {
-                    var bytesRead = await circularStream.ReadAsync(readBuffer, bytesReadTotal, 4);
+                    var bytesReadTotal = 0;
+                    while (bytesReadTotal < bytesToRead)
+                    {
+                        var bytesRead = await circularStream.ReadAsync(readBuffer, bytesReadTotal, 4);
 
-                    bytesReadTotal += bytesRead;
-                }
+                        bytesReadTotal += bytesRead;
+                    }
 
-            });
+                });
 
             await taskWrite;
             await taskRead;
