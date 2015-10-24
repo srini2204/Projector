@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace Projector.IO.Server
 {
@@ -88,7 +89,7 @@ namespace Projector.IO.Server
                 var socketWrapper = new SocketWrapper(awaitable1, awaitable2, socket, _socketListenerSettings.BufferSize);
                 await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
 
-
+                OnClientDisconnected((IPEndPoint)socket.RemoteEndPoint);
             }
             finally
             {
@@ -104,10 +105,25 @@ namespace Projector.IO.Server
             }
         }
 
+        public event EventHandler<IPEndPoint> ClientConnected;
+        public event EventHandler<IPEndPoint> ClientDisconnected;
 
+        private void OnClientDisconnected(IPEndPoint endPoint)
+        {
+            var handler = ClientDisconnected;
+            if (handler != null)
+            {
+                handler(this, endPoint);
+            }
+        }
 
         private Task OnClientConnected(IPEndPoint endPoint, SocketWrapper socketWrapper)
         {
+            var handler = ClientConnected;
+            if (handler != null)
+            {
+                handler(this, endPoint);
+            }
             _clients.TryAdd(endPoint, socketWrapper);
             return _logicalServer.RegisterConnectedClient(endPoint, socketWrapper);
         }

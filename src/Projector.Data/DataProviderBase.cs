@@ -27,12 +27,18 @@ namespace Projector.Data
 
         protected void AddId(int id)
         {
-            _currentAddedIds.Add(id);
+            if (!_currentAddedIds.Add(id))
+            {
+                throw new InvalidOperationException("Duplicate key in the add collection");
+            }
         }
 
         protected void RemoveId(int id)
         {
-            _currentRemovedIds.Add(id);
+            if (!_currentRemovedIds.Add(id))
+            {
+                throw new InvalidOperationException("Duplicate key in the remove collection");
+            }
         }
 
         protected void FireChanges()

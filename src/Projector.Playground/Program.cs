@@ -19,7 +19,8 @@ namespace Projector.Playground
             var logicalServer = new LogicalServer(syncLoop);
             var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 1024 * 8, 8, new IPEndPoint(IPAddress.Loopback, 4444)), logicalServer, new SocketListener());
 
-            var schema = new Schema(1000);
+            var elementCount = 100;
+            var schema = new Schema(elementCount);
             schema.CreateField<int>("Age");
             schema.CreateField<string>("Name");
             schema.CreateField<long>("Time");
@@ -28,13 +29,16 @@ namespace Projector.Playground
             var table = new Table(schema);
             logicalServer.Publish("table1", table);
 
+            server.ClientConnected += (object sender, IPEndPoint e) => Console.WriteLine("Client connected: " + e);
+            server.ClientDisconnected += (object sender, IPEndPoint e) => Console.WriteLine("Client Disconnected: " + e);
+
             var startedServerTask = server.Start();
 
             Task.Run(async () =>
                 {
                     await syncLoop.Run(() =>
                         {
-                            for (int i = 0; i < 1000; i++)
+                            for (int i = 0; i < elementCount; i++)
                             {
                                 var rowId1 = table.NewRow();
                                 table.Set<int>(rowId1, "Age", i);
@@ -79,9 +83,7 @@ namespace Projector.Playground
 
             startedServerTask.Wait();
 
-            syncLoopTask.Dispose();
-
-
+            Console.WriteLine("Finished");
         }
 
 

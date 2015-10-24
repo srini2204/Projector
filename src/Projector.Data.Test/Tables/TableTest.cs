@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Projector.Data.Tables;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Projector.Data.Test.Tables
 {
@@ -12,6 +13,7 @@ namespace Projector.Data.Test.Tables
         private IWritebleSchema _mockSchema;
 
         private Table _table;
+
         [SetUp]
         public void InitContext()
         {
@@ -25,27 +27,43 @@ namespace Projector.Data.Test.Tables
         {
             _table.AddConsumer(_mockDataConsumer);
 
+            Received.InOrder(() =>
+                {
+                    _mockDataConsumer.Received(1).OnSchema(_mockSchema);
+                    _mockDataConsumer.Received(1).OnSyncPoint();
+                });
 
-            _mockDataConsumer.Received(1).OnSchema(_mockSchema);
             _mockDataConsumer.DidNotReceive().OnAdd(Arg.Any<IList<int>>());
             _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
             _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
-            _mockDataConsumer.Received(1).OnSyncPoint();
         }
 
         [Test]
         public void TestSubscribeWhenSeveralRowsInside()
         {
+            var idsToAdd = new List<int>(){ 0, 1, 2 };
+            _mockSchema.GetNewRowId().Returns(0, 1, 2);
+            
             _table.NewRow();
+            _table.NewRow();
+            _table.NewRow();
+
+            _table.FireChanges();
+
+            _mockDataConsumer.ClearReceivedCalls();
+
 
             _table.AddConsumer(_mockDataConsumer);
 
+            Received.InOrder(() =>
+                {
+                    _mockDataConsumer.Received(1).OnSchema(_mockSchema);
+                    _mockDataConsumer.Received(1).OnAdd(Arg.Is<IList<int>>(x => idsToAdd.SequenceEqual(x)));
+                    _mockDataConsumer.Received(1).OnSyncPoint();
+                });
 
-            _mockDataConsumer.Received(1).OnSchema(_mockSchema);
-            _mockDataConsumer.Received(1).OnAdd(Arg.Is<IList<int>>(list => list.Count == 1 && list[0] == 0));
             _mockDataConsumer.DidNotReceive().OnUpdate(Arg.Any<IList<int>>(), Arg.Any<IList<IField>>());
             _mockDataConsumer.DidNotReceive().OnDelete(Arg.Any<IList<int>>());
-            _mockDataConsumer.Received(1).OnSyncPoint();
         }
 
         [Test]

@@ -5,7 +5,7 @@ using Projector.Data.Projection;
 using System;
 using System.Linq.Expressions;
 
-namespace Projector.Data.Test.Linq
+namespace Projector.Data.Test.Projection
 {
     [TestFixture]
     public class ProjectionVisitorTest
@@ -65,12 +65,14 @@ namespace Projector.Data.Test.Linq
         private class Person
         {
             public string Name { get; set; }
+
             public int Age { get; set; }
         }
 
         private class PersonProjected
         {
             public string Name { get; set; }
+
             public string NameAge { get; set; }
         }
     }

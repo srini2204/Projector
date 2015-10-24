@@ -13,7 +13,7 @@ namespace Projector.Data.Test
         [Test]
         public void CreateTableTest()
         {
-            var table = TableExtensions.CreateTable<Person>();
+            var table = new Table<Person>();
 
             Assert.AreEqual(2, table.Schema.Columns.Count);
 
@@ -27,7 +27,7 @@ namespace Projector.Data.Test
         [Test]
         public void CreateFilterTest()
         {
-            var table = TableExtensions.CreateTable<Person>();
+            var table = new Table<Person>();
             var filteredData = table.Where(x => x.Age > 5);
 
             Assert.IsInstanceOf<Filter<Person>>(filteredData);
@@ -36,7 +36,7 @@ namespace Projector.Data.Test
         [Test]
         public void CreateProjectionTest()
         {
-            var table = TableExtensions.CreateTable<Person>();
+            var table = new Table<Person>();
             var projectionData = table.Projection(x => new { x.Name, ProjectedAge = x.Age * 5 });
 
             Assert.IsInstanceOf<Projection<Person,dynamic>>(projectionData);
@@ -45,8 +45,8 @@ namespace Projector.Data.Test
         [Test]
         public void CreateJoinTest()
         {
-            var leftTable = TableExtensions.CreateTable<Person>();
-            var rightTable = TableExtensions.CreateTable<Person>();
+            var leftTable = new Table<Person>();
+            var rightTable = new Table<Person>();
 
             var joinedResult = leftTable.InnerJoin(rightTable, left => left.Name, right => right.Name, (left, right) => new { left.Name, left.Age, RightAge = right.Age });
             Assert.IsInstanceOf<Join<Person,Person,string,dynamic>>(joinedResult);
@@ -55,8 +55,8 @@ namespace Projector.Data.Test
         [Test]
         public void CreateLeftJoinTest()
         {
-            var leftTable = TableExtensions.CreateTable<Person>();
-            var rightTable = TableExtensions.CreateTable<Person>();
+            var leftTable = new Table<Person>();
+            var rightTable = new Table<Person>();
 
             var joinedResult = leftTable.LeftJoin(rightTable, left => left.Name, right => right.Name, (left, right) => new { left.Name, left.Age, RightAge = right.Age });
 
@@ -66,8 +66,8 @@ namespace Projector.Data.Test
         [Test]
         public void CreateRightJoinTest()
         {
-            var leftTable = TableExtensions.CreateTable<Person>();
-            var rightTable = TableExtensions.CreateTable<Person>();
+            var leftTable = new Table<Person>();
+            var rightTable = new Table<Person>();
 
             var joinedResult = leftTable.RightJoin(rightTable, left => left.Name, right => right.Name, (left, right) => new { left.Name, left.Age, RightAge = right.Age });
 
@@ -77,7 +77,7 @@ namespace Projector.Data.Test
         [Test]
         public void CreateGrouByTest()
         {
-            var personTable = TableExtensions.CreateTable<Person>();
+            var personTable = new Table<Person>();
 
             personTable.GroupBy(person => person.Name, (key, persons) => new {PersonName = key, PersonMaxAge = persons.Max(p => p.Age)});
 
@@ -88,7 +88,7 @@ namespace Projector.Data.Test
         [Test]
         public void ProjectionChainingTest()
         {
-            var sourceTable = TableExtensions.CreateTable<Person>();
+            var sourceTable = new Table<Person>();
 
             var result = sourceTable
                 .Where(p => p.Age > 25)
@@ -103,6 +103,5 @@ namespace Projector.Data.Test
 
             public int Age { get; set; }
         }
-
     }
 }

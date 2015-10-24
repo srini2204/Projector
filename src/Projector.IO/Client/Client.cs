@@ -67,10 +67,11 @@ namespace Projector.IO.Client
 
         public Task DisconnectAsync()
         {
-            throw new NotImplementedException();
+            return _socketWrapper.DisconnectAsync();
         }
 
         #region Events
+
         public event EventHandler<ClientDisconnectedEventArgs> OnClientDisconnected;
 
         protected virtual void NotifyClientDiconnected()

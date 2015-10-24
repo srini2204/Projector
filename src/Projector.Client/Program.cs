@@ -15,7 +15,7 @@ namespace Projector.Client
         static void Main(string[] args)
         {
 
-            var client = new Projector.IO.Client.Client(new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 1024*1000, 10));
+            var client = new Projector.IO.Client.Client(new SocketClientSettings(new IPEndPoint(IPAddress.Loopback, 4444), 4, 1024 * 1000, 10));
 
             var syncLoop = new SyncLoop();
             syncLoop.StartProcessActions(CancellationToken.None);
@@ -27,19 +27,21 @@ namespace Projector.Client
             Console.WriteLine("Ok.");
 
             syncLoop.Run(() =>
-            {
-                table.AddConsumer(new ConsoleConsumer());
-            }
+                {
+                    table.AddConsumer(new ConsoleConsumer());
+                }
             );
 
 
             Console.ReadKey();
+            client.DisconnectAsync().Wait();
         }
 
         private class ConsoleConsumer : IDataConsumer
         {
             private int _rowCounter;
             private ISchema _schema;
+
             public void OnAdd(IList<int> ids)
             {
                 _rowCounter += ids.Count;
