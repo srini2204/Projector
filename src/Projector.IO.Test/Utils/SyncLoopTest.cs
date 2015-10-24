@@ -1,11 +1,11 @@
 ﻿
 using NUnit.Framework;
-using Projector.IO.Implementation.Utils;
+using Projector.IO.Utils;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Implementation.Test.Utils
+namespace Projector.IO.Test.Utils
 {
     [TestFixture]
     class SyncLoopTest

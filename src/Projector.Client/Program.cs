@@ -1,7 +1,7 @@
 ﻿using Projector.Data;
 using Projector.IO.Client;
-using Projector.IO.Implementation.Client;
-using Projector.IO.Implementation.Utils;
+using Projector.IO.Client;
+using Projector.IO.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

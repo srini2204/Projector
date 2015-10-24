@@ -42,11 +42,9 @@ namespace Projector.IO.Test.Server
             _mockSocketListener.TakeNewClient().Returns(_taskCompletionSourceStopNotifier.Task);
 
             //execute
-            var taskServerRun = _server.Start();
+            _server.Start();
 
             //check
-            Assert.False(taskServerRun.IsCompleted);
-
             _mockSocketListener.Received(1).StartListen(_ipEndPoint, 10);
 
             _mockSocketListener.Received(1).TakeNewClient().Forget();
@@ -61,11 +59,11 @@ namespace Projector.IO.Test.Server
             _mockSocketListener.TakeNewClient().Returns(_taskCompletionSourceStopNotifier.Task);
 
             //execute
-            var taskServerRun = _server.Start();
+            _server.Start();
 
-            _server.Stop();
+            var taskStopServer = _server.Stop();
 
-            await taskServerRun;
+            await taskStopServer;
 
             //check
             _mockLogicalServer.DidNotReceive().RegisterConnectedClient(Arg.Any<IPEndPoint>(), Arg.Any<ISocketReaderWriter>()).Forget();
@@ -92,7 +90,7 @@ namespace Projector.IO.Test.Server
             _mockSocketListener.TakeNewClient().Returns(Task.FromResult(socket), _taskCompletionSourceStopNotifier.Task);
 
             //execute
-            var taskServerRun = _server.Start();
+            _server.Start();
 
             await socketReadReceived.Task;
 

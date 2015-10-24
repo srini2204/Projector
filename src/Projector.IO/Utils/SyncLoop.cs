@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Implementation.Utils
+namespace Projector.IO.Utils
 {
     public class SyncLoop : ISyncLoop
     {

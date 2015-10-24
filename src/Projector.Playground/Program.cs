@@ -1,8 +1,9 @@
 ﻿using Projector.Data;
 using Projector.Data.Tables;
-using Projector.IO.Implementation.Server;
-using Projector.IO.Implementation.Utils;
 using Projector.IO.Server;
+using Projector.IO.Utils;
+using Projector.IO.Server;
+using Projector.Playground.Properties;
 using System;
 using System.Net;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace Projector.Playground
             var logicalServer = new LogicalServer(syncLoop);
             var server = new Server(new SocketListenerSettings(10000, 1, 100, 4, 1024 * 8, 8, new IPEndPoint(IPAddress.Loopback, 4444)), logicalServer, new SocketListener());
 
-            var elementCount = 100;
+            var elementCount = Settings.Default.ElementCount;
             var schema = new Schema(elementCount);
             schema.CreateField<int>("Age");
             schema.CreateField<string>("Name");
@@ -32,7 +33,7 @@ namespace Projector.Playground
             server.ClientConnected += (object sender, IPEndPoint e) => Console.WriteLine("Client connected: " + e);
             server.ClientDisconnected += (object sender, IPEndPoint e) => Console.WriteLine("Client Disconnected: " + e);
 
-            var startedServerTask = server.Start();
+            server.Start();
 
             Task.Run(async () =>
                 {
@@ -52,38 +53,34 @@ namespace Projector.Playground
                             Console.WriteLine("Published");
                         });
 
-//                    while (true)
-//                    {
-//                        await Task.Delay(5000);
-//                        await syncLoop.Run(() =>
-//                            {
-//                                for (int i = 0; i < 100; i++)
-//                                {
-//                                    var rowId1 = table.NewRow();
-//                                    table.Set<int>(rowId1, "Age", 25);
-//                                    table.Set<string>(rowId1, "Name", "Max");
-//                                    table.Set<long>(rowId1, "Time", 125000);
-//                                    table.Set<long>(rowId1, "Time1", 1);
-//
-//
-//
-//                                }
-//
-//                                table.FireChanges();
-//                            });
-//
-//                    }
+                    //while (true)
+                    //{
+                    //    await Task.Delay(5000);
+                    //    await syncLoop.Run(() =>
+                    //        {
+                    //            for (int i = 0; i < 100; i++)
+                    //            {
+                    //                var rowId1 = table.NewRow();
+                    //                table.Set<int>(rowId1, "Age", 25);
+                    //                table.Set<string>(rowId1, "Name", "Max");
+                    //                table.Set<long>(rowId1, "Time", 125000);
+                    //                table.Set<long>(rowId1, "Time1", 1);
+                    //            }
+
+                    //            table.FireChanges();
+                    //        });
+
+                    //}
                 });
 
 
             Console.WriteLine("Done. Press any key...");
             Console.ReadKey();
 
-            server.Stop();
+            server.Stop().Wait();
 
-            startedServerTask.Wait();
-
-            Console.WriteLine("Finished");
+            Console.WriteLine("Finished. Press any key to close...");
+            Console.ReadKey();
         }
 
 

@@ -65,6 +65,9 @@
     <Compile Include="Server\SocketListenerTest.cs" />
     <Compile Include="SocketHelpers\SocketWrapperTest.cs" />
     <Compile Include="TestHelpers\TaskExtension.cs" />
+    <Compile Include="Utils\ByteBladerTest.cs" />
+    <Compile Include="Utils\CircularStreamTest.cs" />
+    <Compile Include="Utils\SyncLoopTest.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

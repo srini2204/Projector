@@ -1,14 +1,14 @@
 ﻿using Projector.Data;
 using Projector.Data.Tables;
-using Projector.IO.Implementation.Protocol;
-using Projector.IO.Implementation.Utils;
+using Projector.IO.Protocol;
+using Projector.IO.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Implementation.Client
+namespace Projector.IO.Client
 {
     public class SubscriptionManager
     {

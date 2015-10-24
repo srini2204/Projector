@@ -1,10 +1,10 @@
 ﻿using Projector.Data;
-using Projector.IO.Implementation.Protocol;
+using Projector.IO.Protocol;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Projector.IO.Implementation.Server
+namespace Projector.IO.Server
 {
     class NetworkAdapter : IDataConsumer
     {

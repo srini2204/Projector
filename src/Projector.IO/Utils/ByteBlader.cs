@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace Projector.IO.Implementation.Utils
+namespace Projector.IO.Utils
 {
     public static class ByteBlader
     {

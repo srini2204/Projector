@@ -42,10 +42,15 @@
     <Compile Include="Client\Client.cs" />
     <Compile Include="Client\SocketConnector.cs" />
     <Compile Include="Client\SocketClientSettings.cs" />
+    <Compile Include="Client\SubscriptionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\CommandHandlers\ILogicalServer.cs" />
     <Compile Include="Protocol\Commands\ICommand.cs" />
+    <Compile Include="Protocol\Constants.cs" />
+    <Compile Include="Protocol\MessageComposer.cs" />
     <Compile Include="Server\ISocketListener.cs" />
+    <Compile Include="Server\LogicalServer.cs" />
+    <Compile Include="Server\NetworkAdapter.cs" />
     <Compile Include="SocketHelpers\BufferManager.cs" />
     <Compile Include="SocketHelpers\DataHoldingUserToken.cs" />
     <Compile Include="SocketHelpers\ISocket.cs" />
@@ -58,8 +63,22 @@
     <Compile Include="SocketHelpers\SocketAwaitable.cs" />
     <Compile Include="SocketHelpers\SocketExtensions.cs" />
     <Compile Include="SocketHelpers\SocketWrapper.cs" />
+    <Compile Include="Utils\ByteBlader.cs" />
+    <Compile Include="Utils\CircularStream.cs" />
+    <Compile Include="Utils\ISyncLoop.cs" />
+    <Compile Include="Utils\ReusableTaskCompletionSource.cs" />
+    <Compile Include="Utils\SyncLoop.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Projector.Collections\Projector.Collections.csproj">
+      <Project>{64d57ce0-67f9-46b6-98b6-9c0a0b69613c}</Project>
+      <Name>Projector.Collections</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Projector.Data\Projector.Data.csproj">
+      <Project>{c85a7f90-567c-49fe-8d9c-03c1c544078d}</Project>
+      <Name>Projector.Data</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

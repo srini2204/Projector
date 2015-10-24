@@ -1,10 +1,10 @@
 ﻿using Projector.Data;
-using Projector.IO.Implementation.Utils;
+using Projector.IO.Utils;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Projector.IO.Implementation.Protocol
+namespace Projector.IO.Protocol
 {
     public class MessageComposer
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Implementation.Utils
+namespace Projector.IO.Utils
 {
     public interface ISyncLoop
     {

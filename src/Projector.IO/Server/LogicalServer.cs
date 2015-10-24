@@ -1,6 +1,6 @@
 ﻿using Projector.Data;
-using Projector.IO.Implementation.Protocol;
-using Projector.IO.Implementation.Utils;
+using Projector.IO.Protocol;
+using Projector.IO.Utils;
 using Projector.IO.Protocol.CommandHandlers;
 using Projector.IO.SocketHelpers;
 using System;
@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace Projector.IO.Implementation.Server
+namespace Projector.IO.Server
 {
     public class LogicalServer : ILogicalServer
     {
@@ -21,7 +21,7 @@ namespace Projector.IO.Implementation.Server
 
         private readonly System.Timers.Timer _keepAliveTimer;
 
-        private readonly ConcurrentDictionary<IPEndPoint, ISocketReaderWriter> _clients;
+        private readonly ConcurrentDictionary<IPEndPoint, Tuple<ISocketReaderWriter, Stream>> _clients;
         private readonly Dictionary<IPEndPoint, List<IDisconnectable>> _clientSubscriptions;
 
         private readonly ISyncLoop _syncLoop;
@@ -34,7 +34,7 @@ namespace Projector.IO.Implementation.Server
             _syncLoop = syncLoop;
             _cancellationTokenSource = new CancellationTokenSource();
             _tables = new Dictionary<string, IDataProvider>();
-            _clients = new ConcurrentDictionary<IPEndPoint, ISocketReaderWriter>();
+            _clients = new ConcurrentDictionary<IPEndPoint, Tuple<ISocketReaderWriter, Stream>>();
             _clientSubscriptions = new Dictionary<IPEndPoint, List<IDisconnectable>>();
             _keepAliveTimer = new System.Timers.Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
             _keepAliveTimer.Elapsed += _keepAliveTimer_Elapsed;
@@ -56,7 +56,7 @@ namespace Projector.IO.Implementation.Server
                {
                    foreach (var client in _clients)
                    {
-                       //MessageComposer.WriteHeartbeatMessage(client.)
+                       MessageComposer.WriteHeartbeatMessage(client.Value.Item2);
                    }
                });
         }
@@ -65,15 +65,31 @@ namespace Projector.IO.Implementation.Server
 
 
 
-        public Task RegisterConnectedClient(IPEndPoint endPoint, ISocketReaderWriter clientSocketReaderWriter)
+        public async Task RegisterConnectedClient(IPEndPoint endPoint, ISocketReaderWriter clientSocketReaderWriter)
         {
-            _clients.TryAdd(endPoint, clientSocketReaderWriter);
+
             var clientOutputStream = new CircularStream(100000 * 1024);
             var clientInputStream = new CircularStream(1024);
 
+            _clients.TryAdd(endPoint, new Tuple<ISocketReaderWriter, Stream>(clientSocketReaderWriter, clientOutputStream));
+
             var readTask = StartReceiveLoop(endPoint, clientSocketReaderWriter, clientInputStream, clientOutputStream);
             var sendTask = StartSendingLoop(clientSocketReaderWriter, clientOutputStream);
-            return Task.WhenAll(readTask,sendTask);
+
+            var taskFinished = await Task.WhenAny(readTask, sendTask);
+
+            if (taskFinished == readTask)
+            {
+                clientOutputStream.WakeItUp();
+                await sendTask;
+            }
+            else
+            {
+
+            }
+
+            Tuple<ISocketReaderWriter, Stream> clientInfo;
+            _clients.TryRemove(endPoint, out clientInfo);
         }
 
         private async Task StartSendingLoop(ISocketReaderWriter clientSocketReaderWriter, CircularStream outputStream)
@@ -85,7 +101,10 @@ namespace Projector.IO.Implementation.Server
             {
                 if (outputStream.Length == 0)
                 {
-                    await outputStream.WaitForData();
+                    if (await outputStream.WaitForData() == 0)
+                    {
+                        break;
+                    }
                 }
 
                 if (!await clientSocketReaderWriter.SendAsync(outputStream))
@@ -199,9 +218,6 @@ namespace Projector.IO.Implementation.Server
                         }
                         _clientSubscriptions.Remove(endPoint);
                     }
-
-                    ISocketReaderWriter clientSocketReaderWriter;
-                    _clients.TryRemove(endPoint, out clientSocketReaderWriter);
                 });
         }
 
@@ -209,14 +225,6 @@ namespace Projector.IO.Implementation.Server
         public async Task Stop()
         {
             _cancellationTokenSource.Cancel();
-
-            var taskList = new List<Task>();
-            foreach (var socket in _clients)
-            {
-                taskList.Add(socket.Value.DisconnectAsync());
-            }
-
-            await Task.WhenAll(taskList);
 
             while (!_clients.IsEmpty)
             {

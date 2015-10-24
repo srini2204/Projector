@@ -1,5 +1,5 @@
 ﻿
-namespace Projector.IO.Implementation.Protocol
+namespace Projector.IO.Protocol
 {
     static class Constants
     {

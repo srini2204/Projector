@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Implementation.Utils
+namespace Projector.IO.Utils
 {
     class ReusableTaskCompletionSource<TResult> : INotifyCompletion
     {

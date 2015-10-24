@@ -39,7 +39,7 @@ namespace Projector.IO.Server
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
-        internal void Init()
+        private void Init()
         {
             for (var i = 0; i < _socketListenerSettings.NumberOfSaeaForRecSend; i++)
             {
@@ -54,7 +54,7 @@ namespace Projector.IO.Server
             }
         }
 
-        public async Task Start()
+        public async void Start()
         {
             _socketListener.StartListen(_socketListenerSettings.LocalEndPoint, _socketListenerSettings.Backlog);
             var token = _cancellationTokenSource.Token;
@@ -70,8 +70,16 @@ namespace Projector.IO.Server
 
                 StartClientServing(socket);
             }
+        }
 
-            await _logicalServer.Stop();
+        public Task Stop()
+        {
+            _cancellationTokenSource.Cancel();
+            _socketListener.StopListen();
+
+            return _logicalServer.Stop();
+
+            // we can also wait for the clients here
         }
 
         private async void StartClientServing(ISocket socket)
@@ -89,7 +97,7 @@ namespace Projector.IO.Server
                 var socketWrapper = new SocketWrapper(awaitable1, awaitable2, socket, _socketListenerSettings.BufferSize);
                 await OnClientConnected((IPEndPoint)socket.RemoteEndPoint, socketWrapper);
 
-                OnClientDisconnected((IPEndPoint)socket.RemoteEndPoint);
+                await OnClientDisconnected((IPEndPoint)socket.RemoteEndPoint,socketWrapper);
             }
             finally
             {
@@ -108,8 +116,10 @@ namespace Projector.IO.Server
         public event EventHandler<IPEndPoint> ClientConnected;
         public event EventHandler<IPEndPoint> ClientDisconnected;
 
-        private void OnClientDisconnected(IPEndPoint endPoint)
+        private async Task OnClientDisconnected(IPEndPoint endPoint, SocketWrapper socketWrapper)
         {
+            await socketWrapper.DisconnectAsync();
+
             var handler = ClientDisconnected;
             if (handler != null)
             {
@@ -128,15 +138,9 @@ namespace Projector.IO.Server
             return _logicalServer.RegisterConnectedClient(endPoint, socketWrapper);
         }
 
-        public void Stop()
-        {
-            _cancellationTokenSource.Cancel();
-            _socketListener.StopListen();
+        
 
-            // we can also wait for the clients here
-        }
-
-        internal void CleanUpOnExit()
+        private void CleanUpOnExit()
         {
             DisposeAllSaeaObjects();
         }

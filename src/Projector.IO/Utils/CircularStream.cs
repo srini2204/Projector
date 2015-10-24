@@ -4,11 +4,11 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Projector.IO.Implementation.Utils
+namespace Projector.IO.Utils
 {
     public class CircularStream : Stream
     {
-        private ReusableTaskCompletionSource<int> _taskCompletionSource;
+        private ReusableTaskCompletionSource<long> _taskCompletionSource;
         private byte[] _buffer;
 
         private bool _isOpen;
@@ -43,7 +43,7 @@ namespace Projector.IO.Implementation.Utils
             _buffer = new byte[capacity];
             _capacity = capacity;
             _isOpen = true;
-            _taskCompletionSource = new ReusableTaskCompletionSource<int>();
+            _taskCompletionSource = new ReusableTaskCompletionSource<long>();
         }
 
         public override bool CanRead
@@ -245,7 +245,7 @@ namespace Projector.IO.Implementation.Utils
             throw new NotImplementedException();
         }
 
-        public async Task WaitForData()
+        public async Task<long> WaitForData()
         {
             _taskCompletionSource.Reset();
             var someoneIsWriting = (Interlocked.Exchange(ref _readWriteBalance, 1) != 0); // means on the othe side someone is writing
@@ -264,6 +264,8 @@ namespace Projector.IO.Implementation.Utils
                     await _taskCompletionSource;
                 }
             }
+
+            return Length;
         }
 
         private static void CopyBuffer(byte[] src, int srcOffset, byte[] dst, int dstOffset, int count)
@@ -369,6 +371,11 @@ namespace Projector.IO.Implementation.Utils
             _size = 0;
             _writePosition = 0;
             _readPosition = 0;
+        }
+
+        public void WakeItUp()
+        {
+            _taskCompletionSource.SetResult(0);
         }
     }
 }
